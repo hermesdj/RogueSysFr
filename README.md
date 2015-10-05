@@ -2,11 +2,19 @@
 
 ## Status
 Traduction en cours:
-- Communications : 100%
-- Tutoriels : 20%
+- [x] Communications : 100%
+- [ ] Tutoriels : 
+    - [x] T1 100%
+    - [x] T2 100%
+    - [x] T3 100%
+    - [ ] T4 0%
+    - [ ] T5 0%
+    - [ ] T6 0%
+    - [ ] T7 0%
+- [ ] Options : 0%
 
 Version de Rogue System en cours:
-0.1.9.21.15
+**0.1.9.21.15**
 
 ## Introduction
 Bonjour, Cette traduction en est encore à son état préliminaire. Lorsque des versions stables seront disponibles, 

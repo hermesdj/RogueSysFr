@@ -1,0 +1,606 @@
+-- ***T3_FireArc_ExtDocking File***
+-- ***Created by Michael Juliano on 14MAR15***
+
+-- NOTES:
+-- --MISSION TRIGGER				conditions required to start the mission
+-- ----TYPE:							ASAP, EVENT, REGION
+-- ------									[ASAP: mission starts immediately. Normally for single missions]
+-- ------									[EVENT: some event triggers the mission to begin]
+-- ------									[REGION: a ship enters a region of space]
+-- ----ACTION:							The action that triggers the start TYPE (if EVENT or REGION)
+-- ------									[FOR EVENT: ARRIVES, DEPARTS, DESTROYED, ATTACKED, UNDOCKS, DOCKS, INFLIGHT]
+-- ------									[FOR REGION: ENTERS, EXITS]
+-- ----SUBJECT							(PLAYER_HOST, FRIENDLY, ENEMY, CIVILIAN, FACTION, SHIP, PILOT)
+-- ----SUBJECT NAME(sNAME)				(name of ship, pilot, faction)
+
+-- --TRIGGER REGION DATA
+-- ----RADIUS							(triggering radius around region subject in km)
+-- ----SUBJECT							(PLAYER, FRIENDLY, ENEMY, CIVILIAN, SHIP, PILOT)
+-- ----sNAME							(name of ship, pilot, faction)
+-- --STARTDELAY:						time in milli-seconds after the mission is triggered before it actually begins
+
+-- --START LOC						where a flight departs from to enter the mission area
+-- ----TYPE:							(PLAYER, MOTHERSHIP, CURRENT, ORBIT, ETC)
+-- ------									[MOTHERSHIP then flight will only spawn from a mothership. Give mothership details in]
+-- ------									[if PLAYER starts in space using at range from mission location, using detailA for: inORBIT(1), etc., etc.,]
+-- ------									[if ORBIT then use details A, B and C for system, planet and moon ID's if know, else use -1's and use name only]
+-- ------									[if CURRENT (as in location) then us details A, B and C for x, y and z position (in meters)]
+-- ----sNAME:							(name of region target)
+-- ----radius:							if ORBIT then this is the altitude above the body in km
+-- --END LOC						where a flight flies to end their part in the mission
+-- ----END REGION OBJECT				(MOTHERSHIP, CURRENT[location], SYSTEM, PLANET, MOON, SUN, ETC)	
+-- ----END REGION NAME					(name of region target)
+-- --FLIGHT STARTSTATE:				
+-- ----Type:						ALL Systems Up(1), SystemActivated(2), SystemDisabled(4) OR System Destroyed(8), React Tank Empty(16), Coolant Tank Empty(32), LSS tank EMPTY(64) 
+-- ----DetailA:						CSM(1), BATT(2), FCM(4), REACT(8), TMS(16), MTS(32), LENR(64), FLUX(128), <--used with types 2, 4 and 8
+-- ----DetailB:						LSS(1), ECS(2), COMM(4), NAS(8), notSECURED(16)<-- with types 2, 4 and 8 / VMS ONOFF(32), WPN OFF(64), EXTFLOOD OFF(128) <-- with type 1
+-- ----DetailC:						when detailA or B is set to a mult-unit system (such as MES), then this denotes WHICH unit in the system is affected (16 = ALL)						
+-- --FLIGHT TASK:
+-- ----Action:						ARRIVE, DEPART, ATTACK, NAVIGATE, ESCORT, TRAIL, ENTERORBIT, MAINTAINORBIT, DEFENDAREA, DEPLOY, COMBATCOMMAND
+-- ----Method:						MAGIC, MOTHERSHIP, FLUXDRIVE, DARKDRIVE, MTSBURN, PRIWPN, SECWPN, TERWPN, ANYWPNS
+-- ----Trigger:						ASAP, SHIPARRIVES, SHIPDEPARTS, FLIGHTARRIVES, FLIGHTDEPARTS, SHIPDESTROYED, FLIGHTDESTORYED,
+-- ----									SHIPDISABLED, SHIPATTACKED, SHIPDAMAGED, ASAP
+-- ----Delay:						in m/s, delay time before starting task
+-- ----Time Limit:					in m/s, time allowed to complete task. 0 for unlimited
+-- --FLIGHT TASK TARGET PRI & SEC:
+-- ----Type:						SHIP, CELESTIAL, SATELLITE, MINE, NONE
+-- ----tDetail:						STATION, FIGHTER, BOMBER, FREIGHTER, ETC, STAR, PLANET, MOON, ANYSHIP, ATTACKCRAFT (any small fighter/bomber/freighter), ESCORTSHIP, CAPITALSHIP
+-- ----								if ARRIVE via MOTHERSHIP A=host bay/port; B = docked port; C=Internal Pad(0), External Pad(1), External Collar(2)
+-- ----tNum_PRI, SEC & TER:			ship Tail number, system/planet/moon ID, -1 if unknown (assign random)
+-- ----GenNewShips:					if a ship with the requested tail number is not found can a new one be created to fill its place? 0(NO), 1(YES)
+-- ----tName:						Name of object if ID's are unknown
+-- --TargetIFF:
+-- ----Type:						Faction, Character, ENEMY, FRIENDLY, CIVILIAN, ANY
+-- ----tDetail:						Faction Type
+-- ----tName:						Character Name if character, or Faction Name if a generalized faction is used (such as "ColonyGov")
+-- --SPAWN TOTAL:					number of times flight is spawned
+-- --PLAYER ALLOWED:				can the player fly a ship in this flight (is an interior available)
+-- --PLAYER SHIP ALLOWED:			can the player use one of their owned ships in this flight
+-- --SHIP TOTAL:					number of ships in this flight
+-- --UI NAME:						Name of ship or RANDOM. For flights of more than one it becomes "name" 1, 2, 3, etc
+-- --preDefSHIP:					pre-defined ship name (from Mod/Ships/PreDefined folder) or RANDOM (not yet implemented)
+-- --PILOT NAME:					Name of pilot, ROSTER or RANDOM. For multi-crewed ships this is the captain's name
+
+-- END NOTES
+
+T5_FireArc_SHUTDOWN = {}
+T5_FireArc_SHUTDOWN_TUTscript = {}
+
+--*************************************
+--*************************************
+T5_FireArc_SHUTDOWN = {
+	UIName							= "Tutorial 5: Shut-Down",
+	UIDesc							= "FireArc Shut-Down Procedures",
+	UIBriefing						= "This is a continuation of the External Port Docking tutorial. You will be shown the procedure (based on the current implemented systems) for securing your ship after a successful docking maneuver.\r\n \r\nYour ship is currently fully powered and mated with the training platform. While there's no specific time limit, STC always appreciates an expedient shut-down.",
+	has_TUTORIAL					= 1,
+
+	MissionTrigger					= {Type = "ASAP", Action = "NONE", Subject = "NONE", sName = "NONE"},
+	tRegion							= {Radius = 0.0, Subject = "PLAYER", sName = "NONE"},
+	StartDelay						= 0,
+
+	critical_MUSTdo					= 0,
+
+	Flight1 = {
+		UIName						= "Trainer",
+		Owner						= {Type = "Faction", Subject = "FactionA", sName = "NONE"},
+		StartState					= {Types = 1, DetailA = 0, DetailB = 128, DetailC = 0},
+		StartLoc					= {Degrees = -1, Radius = -1, Subject = "DOCKED",  DetailA = 2, DetailB = 1, DetailC = -1, DetailD = -1, sName = "NONE"},
+		StartROT					= {x = 0.0, y = 0.0, z = 0.0},
+		SpawnTotal					= 1,
+		playerALLOWED				= 1,
+		playerShipALLOWED			= 0,
+		ShipTotal					= 1,
+		tailNUMBER1					= {Pri = -1, Sec = -1},																				-- Pri & Sec tail number identifier	XX-xxxx
+		genNewShips					= 1,
+		preDefSHIP					= "FireArc_BASIC",
+		PilotName					= "RANDOM",
+		TaskTotal					= 2,
+		Task1 = {
+			Task					= {Action = "ARRIVE", Method = "MOTHERSHIP", Trigger = "ASAP", sName = "NONE", Delay = 0},
+			TimeLimit				= -1,
+			TargetPRI				= {Type = "NONE", DetailA = 2, DetailB = 3, DetailC = 2},		--where(A), host(B), mine(C)
+			TargetIFF				= {Type = "NONE"},
+			isGOAL					= 0,
+		},
+		Task2 = {
+			TimeLimit				= -1,
+			Task					= {Action = "NAVIGATE", Method = "NONE", Trigger = "ASAP", sName = "NONE", Delay = 0},
+			TargetPRI				= {Type = "SHIP", Subject = "ATTACKSHIP", DetailA = -1, DetailB = -1, DetailC = -1, sName = "NONE"},
+			TargetIFF				= {Type = "Faction", Subject = "ColonyGov", sName = "Dunna Honrad"},
+			isGOAL					= 0,
+		},
+	},
+	Flight2 = {
+		UIName						= "Campana OBT",
+		Owner						= {Type = "Faction", Subject = "FactionA", sName = "NONE"},
+		StartState					= {Types = 1, DetailA = 0, DetailB = 0, DetailC = 0},
+		StartLoc					= {Degrees = 105.0, Radius = 805.0, Subject = "ORBIT", DetailA = 1, DetailB = 3, DetailC = 1, DetailD = 15, sName = "NONE"},
+		StartROT					= {x = 0.0, y = 0.0, z = 0.0},
+		SpawnTotal					= 1,
+		playerALLOWED				= 0,
+		playerShipALLOWED			= 0,
+		ShipTotal					= 1,
+		tailNUMBER1					= {Pri = -1, Sec = -1},																				-- Pri & Sec tail number identifier	XX-xxxx
+		genNewShips					= 1,
+		preDefSHIP					= "A1OBT_BASIC",
+		PilotName					= "RANDOM",
+		TaskTotal					= 2,
+		Task1 = {
+			Task					= {Action = "ARRIVE", Method = "MAGIC", Trigger = "ASAP", sName = "NONE", Delay = 0},
+			TimeLimit				= -1,
+			TargetPRI				= {Type = "NONE"},
+			TargetIFF				= {Type = "NONE"},
+			isGOAL					= 0,
+		},
+		Task2 = {
+			TimeLimit				= -1,
+			Task					= {Action = "NAVIGATE", Method = "NONE", Trigger = "ASAP", sName = "NONE", Delay = 0},
+			TargetPRI				= {Type = "SHIP", Subject = "ATTACKSHIP", DetailA = -1, DetailB = -1, DetailC = -1, sName = "NONE"},
+			TargetIFF				= {Type = "Faction", Subject = "ColonyGov", sName = "Dunna Honrad"},
+			isGOAL					= 0,
+		},
+	},
+}
+
+T5_FireArc_SHUTDOWN_TUTscript = {
+	Event1 = {
+		Line = "In this tutorial you'll be picking up from where you left off in the last one--having just completed a successful docking maneuver.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
+	},
+	Event2 = {
+		Line = "Now, you need to shut this ship down so that it can be safely handed off to Maintenance by STC.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
+	},
+	Event3 = {
+		Line = "Damage, malfunctions, and component age will be persistent from one mission to the next in career mode...",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
+	},
+	Event4 = {
+		Line = "...and Maintenance will attempt to repair your ship in between missions.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
+	},
+	Event5 = {
+		Line = "Enter the cockpit and get yourself seated so we can get started.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = 0, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event6 = {
+		Line = "As always, you should safe the seat when operating the ship systems. Do so now...",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1,
+		compSystem = "SEAT_", compSystemID = 1, compSetting = 3, shipTYPE = "COCKPIT",
+	},
+	Event7 = {
+		Line = "Flood lighting off...",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1,
+		compSystem = "INTFLOOD_", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event8 = {
+		Line = "...and instrument backlighting on.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "INSTLIGHT_", compSystemID = 1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event9 = {
+		Line = "Normally, as you learned previously, the MTS core would have been disabled during your approach.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
+	},
+	Event10 = {
+		Line = "However, since you're docked externally, and STC has locked your throttles, it's safe to practice core shutdown again.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
+	},
+	Event11 = {
+		Line = "First, you want to disable the ICH plasma heater.",
+		Delay = 300, message_LENGTH = 1, object_ID = 142,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "MTS_ichenable", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event12 = {
+		Line = "The plasma temp will drop to 'cold plasma' levels--just above the minimum operating temperature.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event13 = {
+		Line = "Now, DISABLE the Helicon ionizer.",
+		Delay = 300, message_LENGTH = 1, object_ID = 140,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "MTS_heliconenable", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event14 = {
+		Line = "Disabling the Helicon stops the propellant ionization process.",
+		Delay = 1, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "MTS_templvl", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event15 = {
+		Line = "The plasma temperature has bottomed out, and it's now safe to shut down the magnetic containment field. Disable the superconductor now.",
+		Delay = 300, message_LENGTH = 1, object_ID = 141,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "MTS_superconenable", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event16 = {
+		Line = "Silence the warning tone by pressing either 'FAULT ACK' button.",
+		Delay = 1000, message_LENGTH = 1, object_ID = 217,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "CAW_reset", compSystemID = 0, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event17 = {
+		Line = "Disable the fuel injector pump by unpressing the switch.",
+		Delay = 300, message_LENGTH = 1, object_ID = 152,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "MTS_pump", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event18 = {
+		Line = "Now, CLOSE the fuel shut-off valve.",
+		Delay = 300, message_LENGTH = 1, object_ID = 139,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "MTS_shutoffvalve", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event19 = {
+		Line = "Finally, unpress the POWER button to disable the MTS system.",
+		Delay = 300, message_LENGTH = 1, object_ID = 137,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "MTS_enable", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event20 = {
+		Line = "The 'FUEL SOURCE', 'NOZZLES ALL ENABLE' and 'COLD GAS OVRD' buttons will unset themselves.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event21 = {
+		Line = "Disable NAS by unpressing the 'POWER' button.",
+		Delay = 1000, message_LENGTH = 1, object_ID = 184,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "NAS_enable", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event22 = {
+		Line = "'AP ALLOW', 'ATT ALIGN INITIATE' and the Stabilization/Hold buttons will unset themselves if they were set.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event23 = {
+		Line = "You'll be shutting down the LENR in a moment, so you'll need to disable the 'Maintenance Cutoff' to receive power from the platform.",
+		Delay = 1000, message_LENGTH = 1, object_ID = 53,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "ECS_service", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event24 = {
+		Line = "Good. Now, unpress 'FUSE' and allow the reactor to start cooling to minimum operating temperature.",
+		Delay = 300, message_LENGTH = 1, object_ID = 109,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "MES_fuseenable", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event25 = {
+		Line = "While it's cooling, and now that you're on station power, you can shut down the fuel cells.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event26 = {
+		Line = "If they were operating you would first close the shut-off valves. Since they weren't you can proceed to the next step.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event27 = {
+		Line = "Disable fuel cell ONE",
+		Delay = 300, message_LENGTH = 1, object_ID = 29,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "FCS_enable", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event28 = {
+		Line = "When you do, the FUEL SOURCE and REACT SOURCE buttons should unset.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event29 = {
+		Line = "Select fuel cell TWO...",
+		Delay = 300, message_LENGTH = 1, object_ID = 28,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "FCS_select", compSystemID = 2, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event30 = {
+		Line = "...and disable it.",
+		Delay = 300, message_LENGTH = 1, object_ID = 29,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "FCS_enable", compSystemID = 2, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event31 = {
+		Line = "Return to the MES panel and close the LENR's shut-off valve.",
+		Delay = 1000, message_LENGTH = 1, object_ID = 107,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "MES_shutoffvalve", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event32 = {
+		Line = "With MTS and fuel cells shut down, and the LENR isolated, you can proceed with shutting down the Reactant Core.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event33 = {
+		Line = "With tank ONE select, close the shut-off valve...",
+		Delay = 300, message_LENGTH = 1, object_ID = 85,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "RCM_shutoffvalve", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event34 = {
+		Line = "...and then disable the tank pump.",
+		Delay = 300, message_LENGTH = 1, object_ID = 84,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "RCM_pump", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event35 = {
+		Line = "Now, select tank TWO.",
+		Delay = 300, message_LENGTH = 1, object_ID = 95,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "RCM_select", compSystemID = 2, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event36 = {
+		Line = "Close its shut-off valve...",
+		Delay = 300, message_LENGTH = 1, object_ID = 85,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "RCM_shutoffvalve", compSystemID = 2, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event37 = {
+		Line = "...and pump.",
+		Delay = 300, message_LENGTH = 1, object_ID = 84,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "RCM_pump", compSystemID = 2, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event38 = {
+		Line = "Now, repeat the process for tanks THREE and FOUR.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "RCM_pump", compSystemID = 4, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event39 = {
+		Line = "Finally, disable RCM system power.",
+		Delay = 300, message_LENGTH = 1, object_ID = 83,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "RCM_enable", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event40 = {
+		Line = "Silence the RCM warning tone.",
+		Delay = 1000, message_LENGTH = 1, object_ID = 217,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "CAW_reset", compSystemID = 0, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event41 = {
+		Line = "By now, the LENR core should have cooled to minimum operating temperature. Unpress 'PRE-HEAT' to allow to allow it to cool further.",
+		Delay = 1000, message_LENGTH = 1, object_ID = 108,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "MES_prestarter", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event42 = {
+		Line = "On the ECS panel, select the 'MAIN' electrical bus.",
+		Delay = 300, message_LENGTH = 1, object_ID = 50,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "ECS_select", compSystemID = 3, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event43 = {
+		Line = "Disable it.",
+		Delay = 300, message_LENGTH = 1, object_ID = 52,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "ECS_enable", compSystemID = 3, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event44 = {
+		Line = "It will a bit longer before you can disable LENR and MES power. Use the time to disable VMS (DISPLAYS, VMS, and then 'SYSTEM POWER').",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "CANMON_", compSystemID = 0, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event45 = {
+		Line = "It's safe to disable the secondary battery. Select battery TWO...",
+		Delay = 300, message_LENGTH = 1, object_ID = 14,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "BATT_select", compSystemID = 2, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event46 = {
+		Line = "Unpress recharge...",
+		Delay = 300, message_LENGTH = 1, object_ID = 26,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "BATT_recharge", compSystemID = 2, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event47 = {
+		Line = "...and then disable the battery itself.",
+		Delay = 300, message_LENGTH = 1, object_ID = 15,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "BATT_enable", compSystemID = 2, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event48 = {
+		Line = "The LENR core temperature is now within the minimum-safe level for shutdown. Disable LENR system power.",
+		Delay = 300, message_LENGTH = 1, object_ID = 106,
+		System = "PLAYER_", SystemID = 0, Setting = 1,
+		compSystem = "MES_generator", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event49 = {
+		Line = "Confirm the magnetic shield level steadily falls, and then DISABLE the MES itself.",
+		Delay = 300, message_LENGTH = 1, object_ID = 98,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "MES_enable", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event50 = {
+		Line = "With the MES module safely shut down, you can come off of COMMS. Go ahead and disable the transmitter.",
+		Delay = 1000, message_LENGTH = 1, object_ID = 177,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "COMM_xmit", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event51 = {
+		Line = "Then disable the system itself.",
+		Delay = 300, message_LENGTH = 1, object_ID = 176,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "COMM_enable", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event52 = {
+		Line = "You're almost done. All that's left is TMS and disabling the remaining power.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event53 = {
+		Line = "TMS cooling loop ONE should be selected. If it is, press 'LOOP DEPR' to pump the coolant back into the storage tank.",
+		Delay = 300, message_LENGTH = 1, object_ID = 71,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "TMS_purge", compSystemID = 1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event54 = {
+		Line = "Don't worry. Maintenance will flush the tanks with fresh coolant after you depart.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event55 = {
+		Line = "When the system is depressurized, the pump will automatically switch off.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event56 = {
+		Line = "Select loop TWO.",
+		Delay = 300, message_LENGTH = 1, object_ID = 64,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "TMS_select", compSystemID = 2, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event57 = {
+		Line = "Press 'LOOP DEPR' to clear loop TWO.",
+		Delay = 300, message_LENGTH = 1, object_ID = 71,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "TMS_purge", compSystemID = 2, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event58 = {
+		Line = "Assure that it empties and the pump switches off.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event59 = {
+		Line = "When finished you can disable the TMS system.",
+		Delay = 300, message_LENGTH = 1, object_ID = 63,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "TMS_enable", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event60 = {
+		Line = "On the ECS panel, select the 'SECONDARY' electrical bus.",
+		Delay = 1000, message_LENGTH = 1, object_ID = 50,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "ECS_select", compSystemID = 2, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event61 = {
+		Line = "Disable it.",
+		Delay = 300, message_LENGTH = 1, object_ID = 52,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "ECS_enable", compSystemID = 2, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event62 = {
+		Line = "Select battery ONE...",
+		Delay = 1000, message_LENGTH = 1, object_ID = 14,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "BATT_select", compSystemID = 1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event63 = {
+		Line = "Unpress recharge...",
+		Delay = 300, message_LENGTH = 1, object_ID = 26,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "BATT_recharge", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event64 = {
+		Line = "...and then disable the battery. Don't worry, you're still on maintenance power.",
+		Delay = 300, message_LENGTH = 1, object_ID = 15,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "BATT_enable", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event65 = {
+		Line = "Back to the ECS panel, select the 'PRIMARY' electrical bus...",
+		Delay = 1000, message_LENGTH = 1, object_ID = 50,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "ECS_select", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event66 = {
+		Line = "...and disable it.",
+		Delay = 300, message_LENGTH = 1, object_ID = 52,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "ECS_enable", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event67 = {
+		Line = "Isolate the ship from 'Maintenace Power'. Enable the 'Maintenance Cutoff'.",
+		Delay = 1000, message_LENGTH = 1, object_ID = 53,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "ECS_service", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event68 = {
+		Line = "Turn off instrument backlighting...",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "INSTLIGHT_", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event69 = {
+		Line = "...and turn on flood lighting so you can safely exit the ship.",
+		Delay = 500, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "INTFLOOD_", compSystemID = 1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event70 = {
+		Line = "Very well done. By now you should have a good grasp of your ship's functionality, from start-up to shut-down.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event71 = {
+		Line = "As development continues and systems are refined and added these procedures will change.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event72 = {
+		Line = "Don't worry, we'll be updating, and adding, tutorials as things progress.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event73 = {
+		Line = "As we get closer to release we'll be making a full manual available that will cover all flyable ships.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event74 = {
+		Line = "Also, within the sim itself, the Ship's Onboard Intelligence (SOI) will be gradually introduced to assist with low level functions.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event75 = {
+		Line = "This concludes the tutorial. Again, well done....",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+}
+
+--*************************************
+
+--OTHER NOTES:
+----Flights with capital ships (anything that can launch another ship) can only have 1 ship per flight
+----The first task must ALWAYS be an arrival task (Type = 4)
+----Manually assigned tail numbers, for missions, are in the range of primary 80 - 99, UNLESS using a pre-existing ship (if the tail number is not found, then a new ship created with a random tail number)
+----flights with either primary/secondary of -1, or ranges outside of primary 80 - 99, will be randomly assigned
+----the ship name (sName) is used to link a flight to their mothership. MAKE SURE THE NAMES ARE IDENTICAL!
+

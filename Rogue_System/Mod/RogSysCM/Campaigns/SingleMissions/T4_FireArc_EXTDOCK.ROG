@@ -1,0 +1,612 @@
+-- ***T3_FireArc_ExtDocking File***
+-- ***Created by Michael Juliano on 14MAR15***
+
+-- NOTES:
+-- --MISSION TRIGGER				conditions required to start the mission
+-- ----TYPE:							ASAP, EVENT, REGION
+-- ------									[ASAP: mission starts immediately. Normally for single missions]
+-- ------									[EVENT: some event triggers the mission to begin]
+-- ------									[REGION: a ship enters a region of space]
+-- ----ACTION:							The action that triggers the start TYPE (if EVENT or REGION)
+-- ------									[FOR EVENT: ARRIVES, DEPARTS, DESTROYED, ATTACKED, UNDOCKS, DOCKS, INFLIGHT]
+-- ------									[FOR REGION: ENTERS, EXITS]
+-- ----SUBJECT							(PLAYER_HOST, FRIENDLY, ENEMY, CIVILIAN, FACTION, SHIP, PILOT)
+-- ----SUBJECT NAME(sNAME)				(name of ship, pilot, faction)
+
+-- --TRIGGER REGION DATA
+-- ----RADIUS							(triggering radius around region subject in km)
+-- ----SUBJECT							(PLAYER, FRIENDLY, ENEMY, CIVILIAN, SHIP, PILOT)
+-- ----sNAME							(name of ship, pilot, faction)
+-- --STARTDELAY:						time in milli-seconds after the mission is triggered before it actually begins
+
+-- --START LOC						where a flight departs from to enter the mission area
+-- ----TYPE:							(PLAYER, MOTHERSHIP, CURRENT, ORBIT, ETC)
+-- ------									[MOTHERSHIP then flight will only spawn from a mothership. Give mothership details in]
+-- ------									[if PLAYER starts in space using at range from mission location, using detailA for: inORBIT(1), etc., etc.,]
+-- ------									[if ORBIT then use details A, B and C for system, planet and moon ID's if know, else use -1's and use name only]
+-- ------									[if CURRENT (as in location) then us details A, B and C for x, y and z position (in meters)]
+-- ----sNAME:							(name of region target)
+-- ----radius:							if ORBIT then this is the altitude above the body in km
+-- --END LOC						where a flight flies to end their part in the mission
+-- ----END REGION OBJECT				(MOTHERSHIP, CURRENT[location], SYSTEM, PLANET, MOON, SUN, ETC)	
+-- ----END REGION NAME					(name of region target)
+-- --FLIGHT STARTSTATE:				
+-- ----Type:						ALL Systems Up(1), SystemActivated(2), SystemDisabled(4) OR System Destroyed(8), React Tank Empty(16), Coolant Tank Empty(32), LSS tank EMPTY(64) 
+-- ----DetailA:						CSM(1), BATT(2), FCM(4), REACT(8), TMS(16), MTS(32), LENR(64), FLUX(128), <--used with types 2, 4 and 8
+-- ----DetailB:						LSS(1), ECS(2), COMM(4), NAS(8), notSECURED(16) <--used with types 2, 4 and 8
+-- ----DetailC:						when detailA or B is set to a mult-unit system (such as MES), then this denotes WHICH unit in the system is affected (16 = ALL)						
+-- --FLIGHT TASK:
+-- ----Action:						ARRIVE, DEPART, ATTACK, NAVIGATE, ESCORT, TRAIL, ENTERORBIT, MAINTAINORBIT, DEFENDAREA, DEPLOY, COMBATCOMMAND
+-- ----Method:						MAGIC, MOTHERSHIP, FLUXDRIVE, DARKDRIVE, MTSBURN, PRIWPN, SECWPN, TERWPN, ANYWPNS
+-- ----Trigger:						ASAP, SHIPARRIVES, SHIPDEPARTS, FLIGHTARRIVES, FLIGHTDEPARTS, SHIPDESTROYED, FLIGHTDESTORYED,
+-- ----									SHIPDISABLED, SHIPATTACKED, SHIPDAMAGED, ASAP
+-- ----Delay:						in m/s, delay time before starting task
+-- ----Time Limit:					in m/s, time allowed to complete task. 0 for unlimited
+-- --FLIGHT TASK TARGET PRI & SEC:
+-- ----Type:						SHIP, CELESTIAL, SATELLITE, MINE, NONE
+-- ----tDetail:						STATION, FIGHTER, BOMBER, FREIGHTER, ETC, STAR, PLANET, MOON, ANYSHIP, ATTACKCRAFT (any small fighter/bomber/freighter), ESCORTSHIP, CAPITALSHIP
+-- ----								if ARRIVE via MOTHERSHIP A=host bay/port; B = docked port; C=Internal Pad(0), External Pad(1), External Collar(2)
+-- ----tNum_PRI, SEC & TER:			ship Tail number, system/planet/moon ID, -1 if unknown (assign random)
+-- ----GenNewShips:					if a ship with the requested tail number is not found can a new one be created to fill its place? 0(NO), 1(YES)
+-- ----tName:						Name of object if ID's are unknown
+-- --TargetIFF:
+-- ----Type:						Faction, Character, ENEMY, FRIENDLY, CIVILIAN, ANY
+-- ----tDetail:						Faction Type
+-- ----tName:						Character Name if character, or Faction Name if a generalized faction is used (such as "ColonyGov")
+-- --SPAWN TOTAL:					number of times flight is spawned
+-- --PLAYER ALLOWED:				can the player fly a ship in this flight (is an interior available)
+-- --PLAYER SHIP ALLOWED:			can the player use one of their owned ships in this flight
+-- --SHIP TOTAL:					number of ships in this flight
+-- --UI NAME:						Name of ship or RANDOM. For flights of more than one it becomes "name" 1, 2, 3, etc
+-- --preDefSHIP:					pre-defined ship name (from Mod/Ships/PreDefined folder) or RANDOM (not yet implemented)
+-- --PILOT NAME:					Name of pilot, ROSTER or RANDOM. For multi-crewed ships this is the captain's name
+
+-- END NOTES
+
+T4_FireArc_EXTDOCK = {}
+T4_FireArc_EXTDOCK_TUTscript = {}
+
+--*************************************
+--*************************************
+T4_FireArc_EXTDOCK = {
+	UIName							= "Tutorial 4: External Docking",
+	UIDesc							= "FireArc External Port Docking Training",
+	UIBriefing						= "In this tutorial you will be guided through a typical docking procedure at an external port. This also includes basic Space Traffic Control (STC) Approach communications, as well. Again, you'll be maneuvering in close proximity of the A1-OBT training platform--use caution.\r\n \r\nThere is a lot to learn during this tutorial, and docking will take some time to master. Considering that, basic ship shut-down will be covered separately.",
+	has_TUTORIAL					= 1,
+
+	MissionTrigger					= {Type = "ASAP", Action = "NONE", Subject = "NONE", sName = "NONE"},
+	tRegion							= {Radius = 0.0, Subject = "PLAYER", sName = "NONE"},
+	StartDelay						= 0,
+
+	critical_MUSTdo					= 1,
+
+	Flight1 = {
+		UIName						= "Trainer",
+		Owner						= {Type = "Faction", Subject = "FactionA", sName = "NONE"},
+		StartState					= {Types = 1, DetailA = 0, DetailB = 160, DetailC = 0},
+		StartLoc					= {Degrees = 100.0, Radius = 825.0, Subject = "ORBIT", DetailA = 1, DetailB = 3, DetailC = 1, DetailD = 15, sName = "NONE"},
+		StartROT					= {x = 0.0, y = 0.0, z = 0.0},
+		SpawnTotal					= 1,
+		playerALLOWED				= 1,
+		playerShipALLOWED			= 0,
+		ShipTotal					= 1,
+		tailNUMBER1					= {Pri = -1, Sec = -1},																				-- Pri & Sec tail number identifier	XX-xxxx
+		genNewShips					= 1,
+		preDefSHIP					= "FireArc_BASIC",
+		PilotName					= "RANDOM",
+		TaskTotal					= 2,
+		Task1 = {
+			Task					= {Action = "ARRIVE", Method = "MAGIC", Trigger = "ASAP", sName = "NONE", Delay = 0},
+			TimeLimit				= -1,
+			TargetPRI				= {Type = "NONE", DetailA = -1, DetailB = -1, DetailC = -1},		--flight(A), host(B), mine(C)
+			TargetIFF				= {Type = "NONE"},
+			isGOAL					= 0,
+		},
+		Task2 = {
+			TimeLimit				= -1,
+			Task					= {Action = "DOCKS", Method = "NONE", Trigger = "ASAP", sName = "NONE", Delay = 0},
+			TargetPRI				= {Type = "NONE", Subject = "NONE", DetailA = 2, DetailB = -1, DetailC = -1, sName = "NONE"},
+			TargetIFF				= {Type = "NONE", Subject = "NONE", sName = "NONE"},
+			isGOAL					= 2,
+		},
+	},
+	Flight2 = {
+		UIName						= "Campana OBT",
+		Owner						= {Type = "Faction", Subject = "FactionA", sName = "NONE"},
+		StartState					= {Types = 1, DetailA = 0, DetailB = 0, DetailC = 0},
+		StartLoc					= {Degrees = -1, Radius = 20.0, Subject = "PLAYER",  DetailA = 1, DetailB = -1, DetailC = -1, DetailD = -1, sName = "NONE"},
+		StartROT					= {x = 0.0, y = 0.0, z = 0.0},
+		SpawnTotal					= 1,
+		playerALLOWED				= 0,
+		playerShipALLOWED			= 0,
+		ShipTotal					= 1,
+		tailNUMBER1					= {Pri = -1, Sec = -1},																				-- Pri & Sec tail number identifier	XX-xxxx
+		genNewShips					= 1,
+		preDefSHIP					= "A1OBT_BASIC",
+		PilotName					= "RANDOM",
+		TaskTotal					= 2,
+		Task1 = {
+			Task					= {Action = "ARRIVE", Method = "MAGIC", Trigger = "NONE", sName = "NONE", Delay = 1000},
+			TimeLimit				= -1,
+			TargetPRI				= {Type = "NONE", DetailA = -1, DetailB = -1, DetailC = -1},		--flight(A), host(B), mine(C)
+			TargetIFF				= {Type = "NONE"},
+			isGOAL					= 0,
+		},
+		Task2 = {
+			TimeLimit				= -1,
+			Task					= {Action = "NAVIGATE", Method = "NONE", Trigger = "ASAP", sName = "NONE", Delay = 0},
+			TargetPRI				= {Type = "SHIP", Subject = "ATTACKSHIP", DetailA = -1, DetailB = -1, DetailC = -1, sName = "NONE"},
+			TargetIFF				= {Type = "Faction", Subject = "ColonyGov", sName = "Dunna Honrad"},
+			isGOAL					= 0,
+		},
+	},
+}
+
+T4_FireArc_EXTDOCK_TUTscript = {
+	Event1 = {
+		Line = "You are about to tackle probably one of the most dangerous maneuvers you can perform (apart from combat)...",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
+	},
+	Event2 = {
+		Line = "...rendezvousing and docking with another spacecraft using exterior ports.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
+	},
+	Event3 = {
+		Line = "It's a delicate procedure that requires finesse and patience.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
+	},
+	Event4 = {
+		Line = "Often, you will never see the port to which you're trying to connect. You'll need to learn to trust your instruments to be successful.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
+	},
+	Event5 = {
+		Line = "Your only (temporarily) saving grace is that ship-to-ship collisions are currently disabled in this first early-access release.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
+	},
+	Event6 = {
+		Line = "IF you manage to dock, asking you to do anything after that seems a bit demanding; so, we'll cover a basic shut-down in the next tutorial.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
+	},
+	Event7 = {
+		Line = "When you're ready, make your way into the cockpit and have a seat.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = 0, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event8 = {
+		Line = "Good. By now you should know how to safe the seat and set it to 'normal flight' mode. Please, do so now.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1,
+		compSystem = "SEAT_", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event9 = {
+		Line = "Turn off flood lighting...",
+		Delay = 300, message_LENGTH = 1, object_ID = 128,
+		System = "PLAYER_", SystemID = 0, Setting = 1,
+		compSystem = "INTFLOOD_", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event10 = {
+		Line = "...and turn on instrument backlighting.",
+		Delay = 300, message_LENGTH = 1, object_ID = 129,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "INSTLIGHT_", compSystemID = 1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event11 = {
+		Line = "Now, via the main HMD, enable VMS (DISPLAYS, VMS, and then 'SYSTEM POWER').",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "CANMON_", compSystemID = 0, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event12 = {
+		Line = "On the same page, select the 'EXTERIOR DOCK' HUD mode.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "CANMON_mode", compSystemID = 0, compSetting = 3, shipTYPE = "COCKPIT",
+	},
+	Event13 = {
+		Line = "You may hear, depending on your current range to the training platform, a rythmic pulse tone. This is the 'Proximity Alert' tone.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event14 = {
+		Line = "If a ship (or other object) is within 500 meters of yours, this tone will sound. It increases in rate the closer the object is.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event15 = {
+		Line = "When configured for docking it is slaved to the other ship's port or docking bay Localizer to provide more precise auditory feedback.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event16 = {
+		Line = "To begin the docking procedure, you first need to contact the STC of your intended 'host'. Press 'TAB'...",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "COMM_menu", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event17 = {
+		Line = "The options are a bit different when you're not docked. You can either transmit on an 'open' channel, or a 'private' one.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event18 = {
+		Line = "As you don't yet know the training platform's 'STC Approach' frequency, you'll need to announce yourself using '1) Transmit on Open Channel'.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "COMM_menu", compSystemID = -1, compSetting = 15, shipTYPE = "COCKPIT",
+	},
+	Event19 = {
+		Line = "Select '3) Local Space Traffic Control'. From there, you can '1) Announce' yourself to them.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "COMM_menu", compSystemID = -1, compSetting = -1, shipTYPE = "COCKPIT",
+	},
+	Event20 = {
+		Line = "In a moment, they will acknowledge. Now that they're aware of you, you can make other requests. Contact STC again on the open channel.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "COMM_menu", compSystemID = -1, compSetting = 51, shipTYPE = "COCKPIT",
+	},
+	Event21 = {
+		Line = "Declare yourself as '2) On Approach'.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "COMM_menu", compSystemID = -1, compSetting = -1, shipTYPE = "COCKPIT",
+	},
+	Event22 = {
+		Line = "Assuming they can allow it, ST Command will pass you the frequency for 'ST Approach'.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event23 = {
+		Line = "Normally, you'll be making the 'approach' request a great distance from the station. For now, just remain where you are.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event24 = {
+		Line = "Select the HMD's 'COMMS' page.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "MFD_", compSystemID = -1, compSetting = 5, shipTYPE = "COCKPIT",
+	},
+	Event25 = {
+		Line = "Select 'Channel THREE' from the left sub-menu and set the frequency passed to you.",
+		Delay = 300, message_LENGTH = 5000, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "NONE", compSystemID = -1, compSetting = 5, shipTYPE = "COCKPIT",
+	},
+	Event26 = {
+		Line = "If you need it, you can use 'XMISSION LOG' from the right sub-menu to look at previous communications to get the frequency they passed.",
+		Delay = 300, message_LENGTH = 5000, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "COMM_valueset", compSystemID = 3, compSetting = 45, shipTYPE = "COCKPIT",
+	},
+	Event27 = {
+		Line = "Once you have set the frequency (which was 45.2.2) again open the COMMS menu. This time, use '2) Transmit on Private Channel'.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "COMM_menu", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event28 = {
+		Line = "This page shows all of your ship's COMMS channels and what they are set to. Find '45.2.2' on the list and select that numbered option.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "COMM_menu", compSystemID = -1, compSetting = 17, shipTYPE = "COCKPIT",
+	},
+	Event29 = {
+		Line = "Select '1) Space Traffic Control', and then '1) Check in: ST Approach'.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "COMM_menu", compSystemID = -1, compSetting = -1, shipTYPE = "COCKPIT",
+	},
+	Event30 = {
+		Line = "STC will always respond, even if they are unable to handle your request. If they do not, then you transmitted on the wrong channel.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event31 = {
+		Line = "When they have you checked in, contact them again using the approach frequency.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "COMM_menu", compSystemID = -1, compSetting = 52, shipTYPE = "COCKPIT",
+	},
+	Event32 = {
+		Line = "Finally, '1) Request Docking'.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "COMM_menu", compSystemID = -1, compSetting = -1, shipTYPE = "COCKPIT",
+	},
+	Event33 = {
+		Line = "Normally, you can't request docking outside of 100 kilometers. You're well within that range though currently.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event34 = {
+		Line = "Once approved, ST Approach will inform you of the exterior port, pad, or internal bay you'll dock at.",
+		Delay = 1000, message_LENGTH = 6000, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "NONE", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event35 = {
+		Line = "They'll also provide the frequency for that location's Localizer beacon. When you get this from STC, set COMMS channel FOUR to it.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "COMM_valueset", compSystemID = 4, compSetting = 45, shipTYPE = "COCKPIT",
+	},
+	Event36 = {
+		Line = "Since you could potentially have more than one Localizer set, you need to tell NAS which channel should be the active beacon.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event37 = {
+		Line = "With the Localizer frequency set to channel FOUR, and that channel selected, press 'SET LOC' on the upper left of the HMD keypad.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "NAS_source", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event38 = {
+		Line = "Now, you need to access the 'EA/D PORTS' page on the HMD. This stands for 'Exterior Attachments/Docking Ports'.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "MFD_", compSystemID = -1, compSetting = 6, shipTYPE = "COCKPIT",
+	},
+	Event39 = {
+		Line = "This page lists all of your ship's available exterior ports. These can be used for docking, or to attach things like escape pods or turrets.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event40 = {
+		Line = "The left sub-menu allows you to select individual ports. For example, port ONE is being used for the detachable cockpit you're sitting in.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event41 = {
+		Line = "Select port TWO. This is your 'Amidships Dorsal' (upper) port, which is currently available for use.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event42 = {
+		Line = "Click the 'Set As Docking Target' button. This informs NAS that you'll be 'flying' from this port so it can calculate proper alignment data",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "AIRLOCK_valueset", compSystemID = 2, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event43 = {
+		Line = "Assuming you've set up properly, the main VMS HUD should now display '* VALID *', meaning you're receiving proper alignment data.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event44 = {
+		Line = "Also, if you're within 1000 meters of the training platform, you should be hearing what are probably two rather off-key tones.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event45 = {
+		Line = "These are the Localizer Alignment Tones and provide yet another form of feedback to help you achieve proper alignment for docking.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event46 = {
+		Line = "One tone represents position relative to the two intended ports, the other represents relative rotational orientation.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event47 = {
+		Line = "As you improve the alignment both tones will rise. When you're aligned they should harmonize.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event48 = {
+		Line = "Meanwhile, use the HUD needles to correct the pitch, roll and yaw alignment to within 4 degrees of 0 for each axis.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event49 = {
+		Line = "For longitude and latitude, use the center reticle. The closer to center it is, the better the alignment.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event49 = {
+		Line = "Positional alignment is more critical. You have a 0.06 meter maximum tolerance for longitude and latitude.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event50 = {
+		Line = "Finally, to the far right, is the elevation bar. This is the distance between both ports.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event51 = {
+		Line = "Anything within 0.03 meters will make a connection as long all the other axes are aligned.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event52 = {
+		Line = "Warning--an elevation closure rate greater than 0.08 meters-per-second could cause damage to one or both ports.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event53 = {
+		Line = "Finally, know that the HUD display indications will increase in precision as you get closer to the platform.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event54 = {
+		Line = "Time to dock. You should have set up your flight controls by now. Use them to orient your ship so that it's facing the platform.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event55 = {
+		Line = "There is currently a VMS 'Trace' bracket around the station. The concentric Lead-Computed Sight (LCS) reticle is locked on the Localizer source.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event56 = {
+		Line = "That is the port you'll be using.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event57 = {
+		Line = "Remember, there is no friction or drag. You have to 'un-do' any accelerations you make.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event58 = {
+		Line = "Also, remember to use MTS Boost Deflector to 'brake' without having to turn the ship around.",
+		Delay = 300, message_LENGTH = 7000, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event59 = {
+		Line = "Lastly, don't forget that you can disable the ICH plasma heater to put MTS into 'cold plasma' mode for more precise accelerations.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event60 = {
+		Line = "Once moving toward the platform, use boost deflection to gradually slow yourself down as you approach.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event61 = {
+		Line = "A good rule of thumb is no more than 0.04 meters-per-second closure for every 100 meters of distance.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event62 = {
+		Line = "Finally, you'll need to 'stop' relative to the platform between 200-300 meters to deactive the MTS core before proceeding.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event63 = {
+		Line = "If you want to be very cautious, you can either switch to 'RCS ONLY', or disable the ICH COUPLER for 'cold plasma' mode, for your approach, ",
+		Delay = 300, message_LENGTH = 1, object_ID = 145,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event64 = {
+		Line = "From here it's up to you. Use gentle amounts of MTS thrust to close. Within 300 meters you'll be limited to the 'STC Limiter'.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event65 = {
+		Line = "Follow STC instructions, line up the needles, center the reticle, and watch your closure rates. Good luck...",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event66 = {
+		Line = "You're now within 300 meters of the training platform. Slow to under 3 meters-per-second closure.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "CSM_active", SystemID = -2, Setting = 300, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event67 = {
+		Line = "Once stabilized, you need to disable the MTS Core. To do this, first DISABLE the ICH plasma heater if you have not already.",
+		Delay = 300, message_LENGTH = 1, object_ID = 142,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event68 = {
+		Line = "Now, DISABLE the Helicon ionizer. You should see the Plasma Temperature level bottom out. ",
+		Delay = 300, message_LENGTH = 1, object_ID = 140,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "MTS_heliconenable", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event69 = {
+		Line = "You're now clear to proceed using STC Limiter thrust.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event70 = {
+		Line = "If you haven't already, now would be a good time to enable the Pitch, Roll and Yaw Stabilizer/Holds",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event71 = {
+		Line = "You're under 100 meters--it's time to stow any equipment that could hit the station.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "CSM_active", SystemID = -2, Setting = 100, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event72 = {
+		Line = "For you, that means stowing the TMS coolant loop ONE radiator. Make sure system ONE is selected and stow the radiator.",
+		Delay = 300, message_LENGTH = 1, object_ID = 67,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "TMS_deploy", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event73 = {
+		Line = "Once you get the confirmation light, make your final alignments and dock that thing.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event74 = {
+		Line = "Congratulations! Precision docking is no small feat.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "CSM_status", SystemID = -2, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -2, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event75 = {
+		Line = "Keep practicing though--when ship-to-ship collisions are soon enabled there will be no room for error.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+}
+
+--*************************************
+
+--OTHER NOTES:
+----Flights with capital ships (anything that can launch another ship) can only have 1 ship per flight
+----The first task must ALWAYS be an arrival task (Type = 4)
+----Manually assigned tail numbers, for missions, are in the range of primary 80 - 99, UNLESS using a pre-existing ship (if the tail number is not found, then a new ship created with a random tail number)
+----flights with either primary/secondary of -1, or ranges outside of primary 80 - 99, will be randomly assigned
+----the ship name (sName) is used to link a flight to their mothership. MAKE SURE THE NAMES ARE IDENTICAL!
+

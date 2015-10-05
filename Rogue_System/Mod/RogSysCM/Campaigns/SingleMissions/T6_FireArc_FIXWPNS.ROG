@@ -1,0 +1,577 @@
+-- ***T3_FireArc_ExtDocking File***
+-- ***Created by Michael Juliano on 14MAR15***
+
+-- NOTES:
+-- --MISSION TRIGGER				conditions required to start the mission
+-- ----TYPE:							ASAP, EVENT, REGION
+-- ------									[ASAP: mission starts immediately. Normally for single missions]
+-- ------									[EVENT: some event triggers the mission to begin]
+-- ------									[REGION: a ship enters a region of space]
+-- ----ACTION:							The action that triggers the start TYPE (if EVENT or REGION)
+-- ------									[FOR EVENT: ARRIVES, DEPARTS, DESTROYED, ATTACKED, UNDOCKS, DOCKS, INFLIGHT]
+-- ------									[FOR REGION: ENTERS, EXITS]
+-- ----SUBJECT							(PLAYER_HOST, FRIENDLY, ENEMY, CIVILIAN, FACTION, SHIP, PILOT)
+-- ----SUBJECT NAME(sNAME)				(name of ship, pilot, faction)
+
+-- --TRIGGER REGION DATA
+-- ----RADIUS							(triggering radius around region subject in km)
+-- ----SUBJECT							(PLAYER, FRIENDLY, ENEMY, CIVILIAN, SHIP, PILOT)
+-- ----sNAME							(name of ship, pilot, faction)
+-- --STARTDELAY:						time in milli-seconds after the mission is triggered before it actually begins
+
+-- --START LOC						where a flight departs from to enter the mission area
+-- ----TYPE:							(PLAYER, MOTHERSHIP, CURRENT, ORBIT, ETC)
+-- ------									[MOTHERSHIP then flight will only spawn from a mothership. Give mothership details in]
+-- ------									[if PLAYER starts in space using at range from mission location, using detailA for: inORBIT(1), etc., etc.,]
+-- ------									[if ORBIT then use details A, B and C for system, planet and moon ID's if know, else use -1's and use name only]
+-- ------									[if CURRENT (as in location) then us details A, B and C for x, y and z position (in meters)]
+-- ----sNAME:							(name of region target)
+-- ----radius:							if ORBIT then this is the altitude above the body in km
+-- --END LOC						where a flight flies to end their part in the mission
+-- ----END REGION OBJECT				(MOTHERSHIP, CURRENT[location], SYSTEM, PLANET, MOON, SUN, ETC)	
+-- ----END REGION NAME					(name of region target)
+-- --FLIGHT STARTSTATE:				
+-- ----Type:						ALL Systems Up(1), SystemActivated(2), SystemDisabled(4) OR System Destroyed(8), React Tank Empty(16), Coolant Tank Empty(32), LSS tank EMPTY(64) 
+-- ----DetailA:						CSM(1), BATT(2), FCM(4), REACT(8), TMS(16), MTS(32), LENR(64), FLUX(128), <--used with types 2, 4 and 8
+-- ----DetailB:						LSS(1), ECS(2), COMM(4), NAS(8), notSECURED(16) <--used with types 2, 4 and 8
+-- ----DetailC:						when detailA or B is set to a mult-unit system (such as MES), then this denotes WHICH unit in the system is affected (16 = ALL)						
+-- --FLIGHT TASK:
+-- ----Action:						ARRIVE, DEPART, ATTACK, NAVIGATE, ESCORT, TRAIL, ENTERORBIT, MAINTAINORBIT, DEFENDAREA, DEPLOY, COMBATCOMMAND
+-- ----Method:						MAGIC, MOTHERSHIP, FLUXDRIVE, DARKDRIVE, MTSBURN, PRIWPN, SECWPN, TERWPN, ANYWPNS
+-- ----Trigger:						ASAP, SHIPARRIVES, SHIPDEPARTS, FLIGHTARRIVES, FLIGHTDEPARTS, SHIPDESTROYED, FLIGHTDESTORYED,
+-- ----									SHIPDISABLED, SHIPATTACKED, SHIPDAMAGED, ASAP
+-- ----Delay:						in m/s, delay time before starting task
+-- ----Time Limit:					in m/s, time allowed to complete task. 0 for unlimited
+-- --FLIGHT TASK TARGET PRI & SEC:
+-- ----Type:						SHIP, CELESTIAL, SATELLITE, MINE, NONE
+-- ----tDetail:						STATION, FIGHTER, BOMBER, FREIGHTER, ETC, STAR, PLANET, MOON, ANYSHIP, ATTACKCRAFT (any small fighter/bomber/freighter), ESCORTSHIP, CAPITALSHIP
+-- ----								if ARRIVE via MOTHERSHIP A=host bay/port; B = docked port; C=Internal Pad(0), External Pad(1), External Collar(2)
+-- ----tNum_PRI, SEC & TER:			ship Tail number, system/planet/moon ID, -1 if unknown (assign random)
+-- ----GenNewShips:					if a ship with the requested tail number is not found can a new one be created to fill its place? 0(NO), 1(YES)
+-- ----tName:						Name of object if ID's are unknown
+-- --TargetIFF:
+-- ----Type:						Faction, Character, ENEMY, FRIENDLY, CIVILIAN, ANY
+-- ----tDetail:						Faction Type
+-- ----tName:						Character Name if character, or Faction Name if a generalized faction is used (such as "ColonyGov")
+-- --SPAWN TOTAL:					number of times flight is spawned
+-- --PLAYER ALLOWED:				can the player fly a ship in this flight (is an interior available)
+-- --PLAYER SHIP ALLOWED:			can the player use one of their owned ships in this flight
+-- --SHIP TOTAL:					number of ships in this flight
+-- --UI NAME:						Name of ship or RANDOM. For flights of more than one it becomes "name" 1, 2, 3, etc
+-- --preDefSHIP:					pre-defined ship name (from Mod/Ships/PreDefined folder) or RANDOM (not yet implemented)
+-- --PILOT NAME:					Name of pilot, ROSTER or RANDOM. For multi-crewed ships this is the captain's name
+
+-- END NOTES
+
+T6_FireArc_FIXWPNS = {}
+T6_FireArc_FIXWPNS_TUTscript = {}
+
+--*************************************
+--*************************************
+T6_FireArc_FIXWPNS = {
+	UIName							= "Tutorial 6: Fixed Weapon Primer",
+	UIDesc							= "FireArc Initial Fixed Weapon Implementation",
+	UIBriefing						= "While RogSys will eventually include weapons of all types (beamed, propelled, auto-aimed, 'manned' turrets, etc.), currently there is only the 1st-pass implementation of a fixed 'slug thrower' rail gun.\r\n \r\nIn this tutorial the Weapons Management System (WMS) panel and HMD 'WEAPONS' page will be discussed in detail. You'll then learn to use the preliminary sensor system to select a satellite target drone. Finally, you will use the fixed slug-thrower to score hits on it.",
+	has_TUTORIAL					= 1,
+
+	MissionTrigger					= {Type = "ASAP", Action = "NONE", Subject = "NONE", sName = "NONE"},
+	tRegion							= {Radius = 0.0, Subject = "PLAYER", sName = "NONE"},
+	StartDelay						= 0,
+
+	critical_MUSTdo					= 0,
+
+	Flight1 = {
+		UIName						= "Trainer",
+		Owner						= {Type = "Faction", Subject = "FactionA", sName = "NONE"},
+		StartState					= {Types = 1, DetailA = 0, DetailB = 192, DetailC = 0},
+		StartLoc					= {Degrees = 270, Radius = 650.0, Subject = "ORBIT", DetailA = 1, DetailB = 3, DetailC = 1, DetailD = 15, sName = "NONE"},
+		StartROT					= {x = 0.0, y = 0.0, z = 0.0},
+		SpawnTotal					= 1,
+		playerALLOWED				= 1,
+		playerShipALLOWED			= 0,
+		ShipTotal					= 1,
+		tailNUMBER1					= {Pri = -1, Sec = -1},																				-- Pri & Sec tail number identifier	XX-xxxx
+		genNewShips					= 1,
+		preDefSHIP					= "FireArc_BASIC",
+		PilotName					= "RANDOM",
+		TaskTotal					= 2,
+		Task1 = {
+			Task					= {Action = "ARRIVE", Method = "MAGIC", Trigger = "ASAP", sName = "NONE", Delay = 0},
+			TimeLimit				= -1,
+			TargetPRI				= {Type = "NONE", DetailA = 2, DetailB = 3, DetailC = 2},		--where(A), host(B), mine(C)
+			TargetIFF				= {Type = "NONE"},
+			isGOAL					= 0,
+		},
+		Task2 = {
+			TimeLimit				= -1,
+			Task					= {Action = "NAVIGATE", Method = "NONE", Trigger = "ASAP", sName = "NONE", Delay = 0},
+			TargetPRI				= {Type = "SHIP", Subject = "ATTACKSHIP", DetailA = -1, DetailB = -1, DetailC = -1, sName = "NONE"},
+			TargetIFF				= {Type = "Faction", Subject = "ColonyGov", sName = "Dunna Honrad"},
+			isGOAL					= 0,
+		},
+	},
+	Flight2 = {
+		UIName						= "Verne OBT",
+		Owner						= {Type = "Faction", Subject = "FactionA", sName = "NONE"},
+		StartState					= {Types = 1, DetailA = 0, DetailB = 0, DetailC = 0},
+		StartLoc					= {Degrees = -1, Radius = 10.0, Subject = "PLAYER",  DetailA = 1, DetailB = -1, DetailC = -1, DetailD = -1, sName = "NONE"},
+		StartROT					= {x = 0.0, y = 0.0, z = 0.0},
+		SpawnTotal					= 1,
+		playerALLOWED				= 0,
+		playerShipALLOWED			= 0,
+		ShipTotal					= 1,
+		tailNUMBER1					= {Pri = -1, Sec = -1},																				-- Pri & Sec tail number identifier	XX-xxxx
+		genNewShips					= 1,
+		preDefSHIP					= "TS3OBT_BASIC",
+		PilotName					= "RANDOM",
+		TaskTotal					= 2,
+		Task1 = {
+			Task					= {Action = "ARRIVE", Method = "MAGIC", Trigger = "NONE", sName = "NONE", Delay = 1000},
+			TimeLimit				= -1,
+			TargetPRI				= {Type = "NONE"},
+			TargetIFF				= {Type = "NONE"},
+			isGOAL					= 0,
+		},
+		Task2 = {
+			TimeLimit				= -1,
+			Task					= {Action = "NAVIGATE", Method = "NONE", Trigger = "ASAP", sName = "NONE", Delay = 0},
+			TargetPRI				= {Type = "SHIP", Subject = "ATTACKSHIP", DetailA = -1, DetailB = -1, DetailC = -1, sName = "NONE"},
+			TargetIFF				= {Type = "Faction", Subject = "ColonyGov", sName = "Dunna Honrad"},
+			isGOAL					= 0,
+		},
+	},
+}
+
+T6_FireArc_FIXWPNS_TUTscript = {
+	Event1 = {
+		Line = "Welcome back. This will be your first experience using the Weapon Management System and present sensor package.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
+	},
+	Event2 = {
+		Line = "Let's jump right in. Please take your seat in the cockpit module.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = 0, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event3 = {
+		Line = "Good. Safe the seat, configure your lighting, and set the seat to normal flight mode so we can begin.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1,
+		compSystem = "SEAT_", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event4 = {
+		Line = "As mentioned during your introductory tour, WMS handles all installed weapons, weapon capacitors, and the Tracking Computer (TC).",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event5 = {
+		Line = "As a reminder, the WMS panel is to your far right.",
+		Delay = 300, message_LENGTH = 1, object_ID = 202,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event6 = {
+		Line = "This is the switch to enable the selected weapon capacitor.",
+		Delay = 300, message_LENGTH = 1, object_ID = 204,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event7 = {
+		Line = "The weapon capacitors are charged via the Main electrical bus, and store the power required by various weapons to generate shots.",
+		Delay = 300, message_LENGTH = 1, object_ID = 204,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event8 = {
+		Line = "The FireArc has only one installed weapon capacitor. Enable it now...",
+		Delay = 300, message_LENGTH = 1, object_ID = 204,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "WPNCAP_enable", compSystemID = 1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event9 = {
+		Line = "Below this is the capacitor's ISOLATE switch. Enable this switch to disallow the weapons from drawing power from the selected capacitor.",
+		Delay = 500, message_LENGTH = 1, object_ID = 203,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event10 = {
+		Line = "It's possible for ECS to draw power back from the capacitor. Enable the DISCHARGE switch to allow this.",
+		Delay = 500, message_LENGTH = 1, object_ID = 205,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event11 = {
+		Line = "When used in conjunction with ISOLATE, the capacitors can then be used as 'emergency batteries'.",
+		Delay = 50, message_LENGTH = 1, object_ID = 205,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event12 = {
+		Line = "Further down the panel you'll find the manual weapon selector knob. As you can see, your ship has two mounted weapons.",
+		Delay = 1000, message_LENGTH = 1, object_ID = 209,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event13 = {
+		Line = "In emergencies, it's possible to jettison the selected weapon away from the ship. Please refrain from doing that as they are rather expensive.",
+		Delay = 500, message_LENGTH = 1, object_ID = 208,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event14 = {
+		Line = "The ENABLE ALL switch quickly allows system power to all weapons. Enable both weapons now...",
+		Delay = 500, message_LENGTH = 1, object_ID = 207,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "WEAPON_active", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event15 = {
+		Line = "Finally, in order for the weapons to fire they must first be ARMED. Do so now...",
+		Delay = 1000, message_LENGTH = 1, object_ID = 206,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "WEAPON_safety", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event16 = {
+		Line = "By default, you can use the RETURN key to fire the main guns, or bind the 'WMS Primary Trigger' command as you see fit.",
+		Delay = 1000, message_LENGTH = 1, object_ID = 206,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event17 = {
+		Line = "Go ahead and get a feel for the guns. Press and hold the trigger to fire off a few rounds.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "WEAPON_action", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event18 = {
+		Line = "Good. Now on the main HMD in front of you, navigate to the 'WEAPONS' page.",
+		Delay = 3000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "MFD_", compSystemID = -1, compSetting = 7, shipTYPE = "COCKPIT",
+	},
+	Event19 = {
+		Line = "As you can see, the HMD offers more detailed control over the weapons.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event20 = {
+		Line = "Each mounted weapon is selectable using the left and right sub-mode buttons.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event21 = {
+		Line = "If a weapon fires a projectile, such as the slug throwers installed on your ship, the remaining rounds are shown next to the weapon's button.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event22 = {
+		Line = "You can enable and disable the currently selected weapon directly using the 'SELECTED POWER' button.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event23 = {
+		Line = "By default, WMS will prevent a weapon from firing if overheated. You can override this behavior using 'SELECTED OT AUTO-CUTOFF'.",
+		Delay = 500, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event24 = {
+		Line = "A word of warning--severe damage or worse can occur if you attempt to fire overheated weapons.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event25 = {
+		Line = "Most primary weapons can adjust their aim inward to focus fire at a specific point. 'PRI CONVERGENCE' allows you to adjust this by angle.",
+		Delay = 500, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event26 = {
+		Line = "Likewise, it can be set to AUTO, in which case WMS will attempt to angle the guns based on the locked target's range.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event27 = {
+		Line = "Both primary weapons, such as your guns, and secondary weapons like missiles and rockets, can be set to different fire modes.",
+		Delay = 500, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event28 = {
+		Line = "Using the 'PRI FIRE LINK MODE' button, set the link mode to 'SELECTED'. This will cause only the selected weapon to fire.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "WEAPON_link", compSystemID = -1, compSetting = 4, shipTYPE = "COCKPIT",
+	},
+	Event29 = {
+		Line = "Now for a demonstration of Newton's Third Law of Motion: For every action there is an equal and opposite reaction.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event30 = {
+		Line = "Fire off about twenty (20) rounds using the selected weapon.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "WEAPON_action", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event31 = {
+		Line = "Assuming the auto-pilot holds were not enabled, you should find yourself slowly rotating 'towards' the weapon that was fired.",
+		Delay = 15000, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event32 = {
+		Line = "If you continued firing the rotation rate would also increase.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event33 = {
+		Line = "A weapon that fires a projectile creates a force that propels the projectile away from your ship.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event34 = {
+		Line = "However, this same force also 'pushes' against your ship in the opposite direction.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event35 = {
+		Line = "Since both guns were not fired in unison the force on the ship was unbalanced, causing it to not only translate, but rotate.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event36 = {
+		Line = "Obviously, the auto-pilot attitude stabilize/hold modes can counter these imbalances to help you stay lined up with your target.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event37 = {
+		Line = "If NAS is unavailable though, you will have to manually keep your ship on target.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event38 = {
+		Line = "Enable A/P ALLOW and the three attitude HOLDs and fire off a few more rounds to see just how effective they are.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "WEAPON_action", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event39 = {
+		Line = "Good. Before moving on, use the 'PRI FIRE LINK MODE' button to set the mode to 'WHEN ABLE'",
+		Delay = 6000, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "WEAPON_link", compSystemID = -1, compSetting = 3, shipTYPE = "COCKPIT",
+	},
+	Event40 = {
+		Line = "Now, you're going to use the current sensor package to locate a nearby targeting satellite.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event41 = {
+		Line = "Select the HMD's 'SENSORS' page.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "MFD_", compSystemID = -1, compSetting = 8, shipTYPE = "COCKPIT",
+	},
+	Event42 = {
+		Line = "Depending on the current range between you and the satellite, you may need to adjust the display scale.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event43 = {
+		Line = "On the right, use the 'DISPLAY SCALE -' sub-mode to decrease the displayed search area to 5 kilometers. The satellite's 'trace' should become visible.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "MFD_zoom", compSystemID = -1, compSetting = 6000, shipTYPE = "COCKPIT",
+	},
+	Event44 = {
+		Line = "The display is currently in top-down mode. Rotate your ship so the satellite's trace is at the top of the display, which is in front of you.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event45 = {
+		Line = "In top-down mode, larger traces are 'above' you, while smaller traces are 'below'. Pitch all the way around to see this. Continue when ready...",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event46 = {
+		Line = "Just above the 'DISPLAY SCALE' sub-mode buttons is the 'VIEW' sub-mode. Select it to change from 'VIEW (TOP)' to 'VIEW (NOSE)'.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "MFD_front", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event47 = {
+		Line = "Now, traces are represented as if you are looking directly at your ship from behind. The top of the display is above you, and the bottom is below.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event48 = {
+		Line = "Larger traces are in front of you, and smaller ones are behind you.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event49 = {
+		Line = "Yaw your ship 360 degrees to see this. Continue when ready...",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+
+	Event50 = {
+		Line = "Switch back to top view, and then rotate your ship so that the satellite's trace is in front of you, and visible in your VMS. Continue when ready...",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "MFD_up", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event51 = {
+		Line = "Select the satellite's trace on the HMD. When you do a dashed rectangle should be added to the VMS trace bracket.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "WTC_select", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event52 = {
+		Line = "On the HMD, notice that 'DESELECT' and 'TRY LOCK' options have appeared on the right list of sub-modes. Select 'TRY LOCK'.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "WTC_trylock", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event53 = {
+		Line = "The HMD options have changed, allowing you to break the lock. Also, the VMS is now displaying a solid 'TRACK' bracket over the satellite.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event54 = {
+		Line = "When tracking, you get constant updates on range and closure rate. Also, the Lead-Computed Sight (LCS) is displayed in the VMS.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event55 = {
+		Line = "The LCS position is based on the relative velocities of you, your target, and the estimated projectile velocity of your currently selected weapon.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event56 = {
+		Line = "As you did during docking, use MTS Boost and RCS nozzles to close to within 300 meters (0.3 km) of the satellite.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "CSM_center", compSystemID = 3, compSetting = 300, shipTYPE = "COCKPIT",
+	},
+	Event57 = {
+		Line = "Stabilize with the satellite, and then orbit around it until you can clearly see it as a 'circle' and hold position there.",
+		Delay = 300, message_LENGTH = 9000, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "NONE", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event58 = {
+		Line = "As you can see, the satellite creates a holographic field within the central ring.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event59 = {
+		Line = "The field can detect when something penetrates it, and can also display various images.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event60 = {
+		Line = "Being careful NOT to hit the satellite itself, try firing a couple shots through the field.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "WEAPON_action", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event61 = {
+		Line = "Hopefully, you saw red 'x's where your shots passed through the field.",
+		Delay = 4000, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event62 = {
+		Line = "Now, we'll project a small 4-meter wide target for you to shoot at. If you miss the field will flash red. If you hit it will flash green.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event63 = {
+		Line = "_",
+		Delay = 1, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "HOLOGRAM_target", compSystemID = 3, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event64 = {
+		Line = "Good. Give it another try...",
+		Delay = 300, message_LENGTH = 4000, object_ID = -1,
+		System = "HOLOGRAM_action", SystemID = -2, Setting = 1, 
+		compSystem = "NONE", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event65 = {
+		Line = "_",
+		Delay = 1, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "HOLOGRAM_target", compSystemID = 3, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event66 = {
+		Line = "Excellent. One more time...",
+		Delay = 300, message_LENGTH = 4000, object_ID = -1,
+		System = "HOLOGRAM_action", SystemID = -2, Setting = 2, 
+		compSystem = "NONE", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event67 = {
+		Line = "_",
+		Delay = 1, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "HOLOGRAM_target", compSystemID = 3, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event68 = {
+		Line = "Well done.",
+		Delay = 300, message_LENGTH = 3000, object_ID = -1,
+		System = "HOLOGRAM_action", SystemID = -2, Setting = 3, 
+		compSystem = "NONE", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event69 = {
+		Line = "While actual combat won't be nearly this easy, the basic principles are the same.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event70 = {
+		Line = "This concludes the tutorial. Feel free to continue on, or end the mission now....",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+}
+
+--*************************************
+
+--OTHER NOTES:
+----Flights with capital ships (anything that can launch another ship) can only have 1 ship per flight
+----The first task must ALWAYS be an arrival task (Type = 4)
+----Manually assigned tail numbers, for missions, are in the range of primary 80 - 99, UNLESS using a pre-existing ship (if the tail number is not found, then a new ship created with a random tail number)
+----flights with either primary/secondary of -1, or ranges outside of primary 80 - 99, will be randomly assigned
+----the ship name (sName) is used to link a flight to their mothership. MAKE SURE THE NAMES ARE IDENTICAL!
+

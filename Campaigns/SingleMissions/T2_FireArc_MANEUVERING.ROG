@@ -1,0 +1,942 @@
+-- ***FireArc_INTRO File***
+-- ***Created by Michael Juliano on 14MAR15***
+
+-- NOTES:
+-- --MISSION TRIGGER				conditions required to start the mission
+-- ----TYPE:							ASAP, EVENT, REGION
+-- ------									[ASAP: mission starts immediately. Normally for single missions]
+-- ------									[EVENT: some event triggers the mission to begin]
+-- ------									[REGION: a ship enters a region of space]
+-- ----ACTION:							The action that triggers the start TYPE (if EVENT or REGION)
+-- ------									[FOR EVENT: ARRIVES, DEPARTS, DESTROYED, ATTACKED, UNDOCKS, DOCKS, INFLIGHT]
+-- ------									[FOR REGION: ENTERS, EXITS]
+-- ----SUBJECT							(PLAYER_HOST, FRIENDLY, ENEMY, CIVILIAN, FACTION, SHIP, PILOT)
+-- ----SUBJECT NAME(sNAME)				(name of ship, pilot, faction)
+
+-- --TRIGGER REGION DATA
+-- ----RADIUS							(triggering radius around region subject in km)
+-- ----SUBJECT							(PLAYER, FRIENDLY, ENEMY, CIVILIAN, SHIP, PILOT)
+-- ----sNAME							(name of ship, pilot, faction)
+-- --STARTDELAY:						time in milli-seconds after the mission is triggered before it actually begins
+
+-- --START LOC						where a flight departs from to enter the mission area
+-- ----TYPE:							(PLAYER, MOTHERSHIP, CURRENT, ORBIT, ETC)
+-- ------									[MOTHERSHIP then flight will only spawn from a mothership. Give mothership details in]
+-- ------									[if PLAYER starts in space using at range from mission location, using detailA for: inORBIT(1), etc., etc.,]
+-- ------									[if ORBIT then use details A, B and C for system, planet and moon ID's if know, else use -1's and use name only]
+-- ------									[if CURRENT (as in location) then us details A, B and C for x, y and z position (in meters)]
+-- ----sNAME:							(name of region target)
+-- ----radius:							if ORBIT then this is the altitude above the body in km
+-- --END LOC						where a flight flies to end their part in the mission
+-- ----END REGION OBJECT				(MOTHERSHIP, CURRENT[location], SYSTEM, PLANET, MOON, SUN, ETC)	
+-- ----END REGION NAME					(name of region target)
+-- --FLIGHT STARTSTATE:				
+-- ----Type:						ALL Systems Up(1), SystemActivated(2), SystemDisabled(4) OR System Destroyed(8), React Tank Empty(16), Coolant Tank Empty(32), LSS tank EMPTY(64) 
+-- ----DetailA:						CSM(1), BATT(2), FCM(4), REACT(8), TMS(16), MTS(32), LENR(64), FLUX(128), <--used with types 2, 4 and 8
+-- ----DetailB:						LSS(1), ECS(2), COMM(4), NAS(8), notSECURED(16) <--used with types 2, 4 and 8
+-- ----DetailC:						when detailA or B is set to a mult-unit system (such as MES), then this denotes WHICH unit in the system is affected (16 = ALL)						
+-- --FLIGHT TASK:
+-- ----Action:						ARRIVE, DEPART, ATTACK, NAVIGATE, ESCORT, TRAIL, ENTERORBIT, MAINTAINORBIT, DEFENDAREA, DEPLOY, COMBATCOMMAND
+-- ----Method:						MAGIC, MOTHERSHIP, FLUXDRIVE, DARKDRIVE, MTSBURN, PRIWPN, SECWPN, TERWPN, ANYWPNS
+-- ----Trigger:						ASAP, SHIPARRIVES, SHIPDEPARTS, FLIGHTARRIVES, FLIGHTDEPARTS, SHIPDESTROYED, FLIGHTDESTORYED,
+-- ----									SHIPDISABLED, SHIPATTACKED, SHIPDAMAGED, ASAP
+-- ----Delay:						in m/s, delay time before starting task
+-- ----Time Limit:					in m/s, time allowed to complete task. 0 for unlimited
+-- --FLIGHT TASK TARGET PRI & SEC:
+-- ----Type:						SHIP, CELESTIAL, SATELLITE, MINE, NONE
+-- ----tDetail:						STATION, FIGHTER, BOMBER, FREIGHTER, ETC, STAR, PLANET, MOON, ANYSHIP, ATTACKCRAFT (any small fighter/bomber/freighter), ESCORTSHIP, CAPITALSHIP
+-- ----tNum_PRI, SEC & TER:			ship Tail number, system/planet/moon ID, -1 if unknown (assign random)
+-- ----GenNewShips:					if a ship with the requested tail number is not found can a new one be created to fill its place? 0(NO), 1(YES)
+-- ----tName:						Name of object if ID's are unknown
+-- --TargetIFF:
+-- ----Type:						Faction, Character, ENEMY, FRIENDLY, CIVILIAN, ANY
+-- ----tDetail:						Faction Type
+-- ----tName:						Character Name if character, or Faction Name if a generalized faction is used (such as "ColonyGov")
+-- --SPAWN TOTAL:					number of times flight is spawned
+-- --PLAYER ALLOWED:				can the player fly a ship in this flight (is an interior available)
+-- --PLAYER SHIP ALLOWED:			can the player use one of their owned ships in this flight
+-- --SHIP TOTAL:					number of ships in this flight
+-- --UI NAME:						Name of ship or RANDOM. For flights of more than one it becomes "name" 1, 2, 3, etc
+-- --preDefSHIP:					pre-defined ship name (from Mod/Ships/PreDefined folder) or RANDOM (not yet implemented)
+-- --PILOT NAME:					Name of pilot, ROSTER or RANDOM. For multi-crewed ships this is the captain's name
+
+-- END NOTES
+
+T2_FireArc_MANEUVERING = {}
+T2_FireArc_MANEUVERING_TUTscript = {}
+
+--*************************************
+--*************************************
+T2_FireArc_MANEUVERING = {
+	UIName							= "Tutoriel 2: Manoeuvres de base",
+	UIDesc							= "Manoeuvres de base en utilisant divers modes MTS",
+	UIBriefing						= "L'objet de ce scénartio est de vous enseigner les bases des manoeuvres en utilisant à la fois les moteurs de translation et de rotation. Vous apprendrez aussi comment faire des poussées à haute vélocité en utilisant les divers modes de 'boosters'.\r\n \r\nIl est FORTEMENT recommandé que vous alliez visiter la page des options de 'Contrôle' pour y configurer les contrôles de vols en fonction de votre équipement avant de démarrer le tutoriel. Vous pouvez utiliser un Joystick, manettes ou le clavier pour faire voler votre vaisseau.",
+	has_TUTORIAL					= 1,
+
+	MissionTrigger					= {Type = "ASAP", Action = "NONE", Subject = "NONE", sName = "NONE"},
+	tRegion							= {Radius = 0.0, Subject = "PLAYER", sName = "NONE"},
+	StartDelay						= 0,
+
+	critical_MUSTdo					= 0,
+
+	Flight1 = {
+		UIName						= "Trainer",
+		Owner						= {Type = "Faction", Subject = "FactionA", sName = "NONE"},
+		StartState					= {Types = 1, DetailA = 0, DetailB = 160, DetailC = 0},
+		StartLoc					= {Degrees = 180.0, Radius = 803.0, Subject = "ORBIT", DetailA = 1, DetailB = 3, DetailC = 1, DetailD = 15, sName = "NONE"},
+		StartROT					= {x = 0.0, y = 0.0, z = 0.0},
+		SpawnTotal					= 1,
+		playerALLOWED				= 1,
+		playerShipALLOWED			= 0,
+		ShipTotal					= 1,
+		tailNUMBER1					= {Pri = -1, Sec = -1},																				-- Pri & Sec tail number identifier	XX-xxxx
+		genNewShips					= 1,
+		preDefSHIP					= "FireArc_BASIC",
+		PilotName					= "RANDOM",
+		TaskTotal					= 2,
+		Task1 = {
+			Task					= {Action = "ARRIVE", Method = "MAGIC", Trigger = "ASAP", sName = "NONE", Delay = 0},
+			TimeLimit				= -1,
+			TargetPRI				= {Type = "NONE", DetailA = 2, DetailB = 3, DetailC = 2},		--where(A), host(B), mine(C)
+			TargetIFF				= {Type = "NONE"},
+			isGOAL					= 0,
+		},
+		Task2 = {
+			TimeLimit				= -1,
+			Task					= {Action = "NAVIGATE", Method = "NONE", Trigger = "ASAP", sName = "NONE", Delay = 0},
+			TargetPRI				= {Type = "SHIP", Subject = "ATTACKSHIP", DetailA = -1, DetailB = -1, DetailC = -1, sName = "NONE"},
+			TargetIFF				= {Type = "Faction", Subject = "ColonyGov", sName = "Dunna Honrad"},
+			isGOAL					= 0,
+		},
+	},
+	Flight2 = {
+		UIName						= "Campana OBT",
+		Owner						= {Type = "Faction", Subject = "FactionA", sName = "NONE"},
+		StartState					= {Types = 1, DetailA = 0, DetailB = 0, DetailC = 0},
+		StartLoc					= {Degrees = -1, Radius = 10.0, Subject = "PLAYER",  DetailA = 1, DetailB = -1, DetailC = -1, DetailD = -1, sName = "NONE"},
+		StartROT					= {x = 0.0, y = 0.0, z = 0.0},
+		SpawnTotal					= 1,
+		playerALLOWED				= 0,
+		playerShipALLOWED			= 0,
+		ShipTotal					= 1,
+		tailNUMBER1					= {Pri = -1, Sec = -1},																				-- Pri & Sec tail number identifier	XX-xxxx
+		genNewShips					= 1,
+		preDefSHIP					= "A1OBT_BASIC",
+		PilotName					= "RANDOM",
+		TaskTotal					= 2,
+		Task1 = {
+			Task					= {Action = "ARRIVE", Method = "MAGIC", Trigger = "NONE", sName = "NONE", Delay = 1000},
+			TimeLimit				= -1,
+			TargetPRI				= {Type = "NONE"},
+			TargetIFF				= {Type = "NONE"},
+			isGOAL					= 0,
+		},
+		Task2 = {
+			TimeLimit				= -1,
+			Task					= {Action = "NAVIGATE", Method = "NONE", Trigger = "ASAP", sName = "NONE", Delay = 0},
+			TargetPRI				= {Type = "SHIP", Subject = "ATTACKSHIP", DetailA = -1, DetailB = -1, DetailC = -1, sName = "NONE"},
+			TargetIFF				= {Type = "Faction", Subject = "ColonyGov", sName = "Dunna Honrad"},
+			isGOAL					= 0,
+		},
+	},
+}
+
+T2_FireArc_MANEUVERING_TUTscript = {
+	Event1 = {
+		Line = "Bon retour sur le FireArc. Dans ce tutoriel vous sera montré les bases des manoeuvres de vol dans un environnement sans friction.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
+	},
+	Event2 = {
+		Line = "C'est très différent de voler en atmosphère. La principale différence étant qu'il n'y a pas de Forces, comme les frottements, pour arrêter les mouvements.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
+	},
+	Event3 = {
+		Line = "Une fois qu'une force est appliquée pour modifier votre direction ou votre vélocité, l'effet restera jusqu'à ce que vous ou le pilote automatique n'appliquiez une force opposée.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
+	},
+	Event4 = {
+		Line = "Cela est plus facilement démontré qu'expliqué, donc entrez dans la cabine de pilotage et installez vous.",
+		Delay = 300, message_LENGTH = 1, object_ID = 7,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "HATCH_", compSystemID = 1, compSetting = 1, shipTYPE = "BOMBER",
+	},
+	Event5 = {
+		Line = "Souvenez vous de vous déplacer sur la droite du siège du pilote le plus au fond possible.",
+		Delay = 1, message_LENGTH = 1000, object_ID = -1,
+		System = "HATCH_", SystemID = 1, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 3, shipTYPE = "BOMBER",
+	},
+	Event6 = {
+		Line = "Une fois dedans et à l'abri de l'écoutille, désécurisez le siège.",
+		Delay = 1000, message_LENGTH = 1, object_ID = 10,
+		System = "SEAT_", SystemID = 1, Setting = 3, 
+		compSystem = "SEAT_", compSystemID = 1, compSetting = 2, shipTYPE = "COCKPIT",
+	},
+	Event7 = {
+		Line = "Lorsqu'il a finit de se mouvoir, asseyez vous en faisant un clic gauche sur le siège.",
+		Delay = 1000, message_LENGTH = 1, object_ID = 7,
+		System = "SEAT_", SystemID = 1, Setting = 2, 
+		compSystem = "PLAYER_", compSystemID = 0, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event8 = {
+		Line = "Bien. Maintenant sécuriez le siège en utilisant le bouton à votre gauche.",
+		Delay = 500, message_LENGTH = 1, object_ID = 125,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "SEAT_", compSystemID = 1, compSetting = 3, shipTYPE = "COCKPIT",
+	},
+	Event9 = {
+		Line = "Une fois sécurisé, c'est toujours une bonne idée de couper les lumières de la cabine pour préserver l'énergie...",
+		Delay = 300, message_LENGTH = 1, object_ID = 128,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "INTFLOOD_", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event10 = {
+		Line = "... et allumez le rétro éclairage des instruments si ce n'est pas déjà fait.",
+		Delay = 300, message_LENGTH = 1, object_ID = 129,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "INSTLIGHT_", compSystemID = 1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event11 = {
+		Line = "Enfin, passez le siège en mode de vol normal.",
+		Delay = 300, message_LENGTH = 4500, object_ID = 123,
+		System = "PLAYER_", SystemID = 0, Setting = 1,
+		compSystem = "SEAT_", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event12 = {
+		Line = "Activé le Système des Moniteurs de Fenêtres (VMS).",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event13 = {
+		Line = "Si vous vous souvenez du premier tutoriel, le VMS est géré par le HMD principal en face de vous. Cliquez dessus pour le rendre actif.",
+		Delay = 300, message_LENGTH = 1, object_ID = 155,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "MFD_", compSystemID = 1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event14 = {
+		Line = "En utilisant soit le curseur avec les touches du pavé numérique, ou avec la souris, sélectionnez le mode 'DISPLAYS'.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "MFD_", compSystemID = -1, compSetting = 2, shipTYPE = "COCKPIT",
+	},
+	Event15 = {
+		Line = "Maintenant, dans le sous menu de gauche, sélectionnez 'VMS'. Ensuite, activez le VMS avec le boutton 'SYSTEM POWER'.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "CANMON_", compSystemID = 0, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event16 = {
+		Line = "Pour ce tutoriel, vous utiliserez les contrôles de translation, ainsi que le tangage, le roulis et le lacet.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event17 = {
+		Line = "Vous utiliserez aussi l'accélérateur MTS et testerez le déflecteur MTS.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event18 = {
+		Line = "Avant d'aller plus loin, configurez votre contrôlleur pour pouvoir piloter le vaisseau.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event19 = {
+		Line = "Sinon, si vous utiliserez le clavier, jetez un oeil à la configuration par défaut et assurez vous de vous familiariser avec elles.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event20 = {
+		Line = "Appuyez simplement sur 'ECHAP', sélectionnez 'Contrôles' dans le menu, naviguez dans 'Systèmes du vaisseau' et enfin 'Contrôles de Vol'. 'Continuer' pour valider votre configuration.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event21 = {
+		Line = "Pas d'inquiétude, si à un moment du tutoriel vous oubliez une commande, ou désirez modifier les réglages, appuyez sur 'ECHAP' et retournez à la configuration.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event22 = {
+		Line = "L'orientation de votre vaisseau est essentiellement de quel côté il fait face. Vous pouvez changer l'orientation avec les contrôles de tangage, de roulis et de lacet.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event23 = {
+		Line = "Essayez de tanguer vers le haut maintenant. Les étoiles en arrière plan se déplaceront vers le bas quand vous tanguez vers le haut.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "CONTROL_up", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event24 = {
+		Line = "Bien. Continuez de tanguer vers le haut pour gagner du momentum, puis lâchez les contrôles.",
+		Delay = 300, message_LENGTH = 5000, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "NONE", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event25 = {
+		Line = "Comme vous pouvez le voir, vous continuez votre rotation sans ralentir même en ayant relâché les contrôles.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event26 = {
+		Line = "C'est la première loi du mouvement de Newton. En général, un objet restera au repos ou en mouvement jusqu'à ce qu'une force externe lui soit appliqué.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event27 = {
+		Line = "Dans la haute atmosphère des planètes, il n'y a presque pas de friction ou de frottements pour contrer les forces que vous appliquez. Au delà il n'y en a pas du tout.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event28 = {
+		Line = "Vous devez appliquer une force contraire, dans ce cas tanguer vers le bas. Faites le jusqu'à ce que la rotation cesse.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "CONTROL_down", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event29 = {
+		Line = "Une fois le vaisseau stabilisé, essayez de d'appliquer du lacet vers la droite pendant 3 secondes jusqu'à avoir un peu de momentum. N'essayez pas de le contrer.",
+		Delay = 3000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "CONTROL_right", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event30 = {
+		Line = "Maintenant, tanguez vers le bas pour 3 secondes de plus.",
+		Delay = 3000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "CONTROL_down", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event31 = {
+		Line = "Finalement, faites un roulis vers la droite pendant 3 secondes.",
+		Delay = 3000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "CONTROL_rightrear", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event32 = {
+		Line = "Un peu étourdissant, n'est-ce pas ? Sous ces conditions, le mal des transports peut affecter les pilotes les plus expérimentés.",
+		Delay = 3000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event33 = {
+		Line = "Si vous commencez à vous sentir inconfortable, essayez de vous concentrer sur quelque chose qui ne bouge pas, ou fermez vos yeux pendant un instant.",
+		Delay = 1, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event34 = {
+		Line = "Si vous continuiez à ajouter de la rotation, votre vitesse de rotation continuerait à augmenter.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event35 = {
+		Line = "Eventuellement, les forces deviendraient plus fortes que vous, puis que votre vaisseau, ne pourrait tolérer.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event36 = {
+		Line = "Heureusement, les réactions du pilote aux accélérations sont pour le moment désactivées. Ils seront réintroduits dans une mise à jour à venir.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event37 = {
+		Line = "Maintenant, essayez de contrer toutes les rotations. Vous avez 8 secondes...",
+		Delay = 1000, message_LENGTH = 3000, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "NONE", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event38 = {
+		Line = "...5...",
+		Delay = 1000, message_LENGTH = 1000, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "NONE", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event39 = {
+		Line = "...4...",
+		Delay = 1, message_LENGTH = 1000, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "NONE", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event40 = {
+		Line = "...3...",
+		Delay = 1, message_LENGTH = 1000, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "NONE", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event41 = {
+		Line = "...2...",
+		Delay = 1, message_LENGTH = 1000, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "NONE", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event42 = {
+		Line = "...1...",
+		Delay = 1, message_LENGTH = 1000, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "NONE", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event43 = {
+		Line = "...et c'est terminé. Ne vous inquiétez pas si vous n'avez pas réussi à arrêter votre rotation. Cela demande de la pratique de reprendre le contrôle manuellement dans cette situation.",
+		Delay = 1, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event44 = {
+		Line = "Même si vous avez réussi, vous avez dû vous rendre compte que cela peut être compliqué de d'annuler totalement toutes les rotations. Cela est normal.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event45 = {
+		Line = "Vous allez le refaire, mais cette fois vous aurez l'assistance du pilote automatique (NAS).",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event46 = {
+		Line = "Allez y et faite un lacet vers la droite pendant 3 secondes sans essayer de le contrer.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "CONTROL_right", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event47 = {
+		Line = "Ajoutez un peu de tangage vers le bas pendant 3 secondes.",
+		Delay = 3000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "CONTROL_down", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event48 = {
+		Line = "Et un peu de roulis sur la droite pendant 3 secondes.",
+		Delay = 3000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "CONTROL_rightrear", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event49 = {
+		Line = "Regarder sur votre droite pour trouver le panneau du NAS. le NAS en lui même est activé est déjà activé. Allez y et appuyez sur 'AP ALLOW'",
+		Delay = 3000, message_LENGTH = 1, object_ID = 186,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "NAS_auto", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event50 = {
+		Line = "Vous allez utiliser le stabilizateur de direction pour arrêter vos rotations. Appuyez sur 'MAINTIENT DU ROULIS'",
+		Delay = 300, message_LENGTH = 1, object_ID = 190,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "NAS_roll", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event51 = {
+		Line = "Vous devriez entendre les moteurs RCS appropriés pour stopper votre rotation.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event52 = {
+		Line = "Si vous êtes assez rapide, vous pouvez passer en vue extérieure pour voir les moteurs s'allumer.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event53 = {
+		Line = "Maintenant, appuyez sur 'MAINTIENT DU LACET'",
+		Delay = 1000, message_LENGTH = 1, object_ID = 188,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "NAS_yaw", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event54 = {
+		Line = "Encore, les moteurs appropriés s'allumeront. Une fois terminé, vous devriez être uniquement dans une rotation de tangage.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event55 = {
+		Line = "Appuyez sur 'MAINTIENT DU TANGAGE'",
+		Delay = 1000, message_LENGTH = 1, object_ID = 189,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "NAS_pitch", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event56 = {
+		Line = "Votre vaisseau devrait complètement s'arrêter alors que les moteurs de tangage annulent le reste des forces de rotation.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event57 = {
+		Line = "Encore une fois, et cette fois ci avec les maintients actifs, ajoutez 3 secondes de lacet sur la droite.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "CONTROL_right", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event58 = {
+		Line = "Quand vous relâchez les contrôles, votre vaisseau va automatiquement ralentir puis s'arrêter.",
+		Delay = 3000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event59 = {
+		Line = "Avec le pilote automatique, votre vaisseau deviens plus gérable et prédictible. Essayez de manoeuvrer un peu pour avoir un bon ressenti du système.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event60 = {
+		Line = "Comme vous pouvez le voir, le pilote automatique ne peut pas tricher avec les lois de la physique. Cela prends autant de force pour arrêter une rotation que ça en a pris pour l'initier.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event61 = {
+		Line = "Apprenez à prédire quand libérer les contrôles pour que le pilote automatique compense et oriente le vaisseau à l'orientation désirée.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event62 = {
+		Line = "Attention. Le NAS peut être endommagé en combat, ou subir une malfonction à cause de l'obsolescence ou d'une erreur aléatoire. Ne dépendez pas de lui car il ne sera peut être pas toujours là.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event63 = {
+		Line = "Pratiquez le vol manuel. Il viendra un jour dans votre carrière ou vous serez très heureux de l'avoir fait...",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	
+	Event64 = {
+		Line = "Le RCS c'est le Reaction Control System. Il est composé de plein de petits moteurs positionnés tout autour du vaisseau.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event65 = {
+		Line = "Le tangage, le roulis et le lacet sont obtenus en allumant les bons moteurs autour du centre de masse du vaisseau (CM).",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event66 = {
+		Line = "Cependant, vous pouvez aussi déplacer votre vaisseau avec la bonne combinaison de moteurs. Cela est appelé la 'Translation'.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event67 = {
+		Line = "Par exemple, si vous appliquez une poussée sur la gauche du vaisseau, équilibré par rapport au centre de masse, le vaisseau va se déplacer sur la droite.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event68 = {
+		Line = "Il est possible de translater longitudement (vers l'avant et l'arrière), latéralement (gauche et droite) et verticalement (haut et bas).",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event69 = {
+		Line = "Dans les voyages spatiaux, sans aides visuelles, ces translations sont presque impossible à voir sauf si vous êtes très proche de quelque chose d'autre.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event70 = {
+		Line = "ça tombe bien, vous êtes très proche d'une station orbitale d'entraînement. Nous l'utiliseront pour faire une démonstration des translations.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event71 = {
+		Line = "La station devrait être à environs 10 kilomètres et visible près de l'horizon galactique. Si non, vous ne la verrez qu'avec les supports 'Trace' sur le VMS.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event72 = {
+		Line = "Sans viser DIRECTEMENT la station, ajustez votre orientation pour que vous pointiez généralement vers elle. Continuez quand vous avez terminé.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event73 = {
+		Line = "Lorsque vous approchez d'un autre vaisseau pacifiquement, ne volez pas directement vers lui. Comme ça vous n'entrerez pas en collision si vous arrivez trop vite.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event74 = {
+		Line = "Vos stabiliseurs d'orientation devraient toujours être actif, donc votre vaisseau devrait être stable une fois orienté.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event75 = {
+		Line = "Maintenant, translatez ver l'avant en utilisant le contrôle configuré pour cela. Encore, vous pouvez vérifier avec la touche 'ECHAP', 'Contrôles', 'Systèmes du Vaisseau', 'Contrôles de Vol'.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "CONTROL_modeA", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event76 = {
+		Line = "Arrêtez la poussée lorsque vous voyez la station approcher (distance sous l'indicateur diminuant, ou si elle grossit à l'écran).",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event77 = {
+		Line = "Souvenez vous, vous deveez défaire ce que vous avez fait, donc n'approchez pas trop vite. Commencez à pousser vers l'arrière AVANT que vous ayez l'impression d'aller trop loin.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "CONTROL_modeB", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event78 = {
+		Line = "Quand vous entendez une pulsation, vous êtes à moins de 500 mètres d'un autre object. Son rythme dépend de la distance.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event79 = {
+		Line = "Continuez à utiliser la poussée avant/arrière jusqu'à vous stabiliser à environs 300 mètres de la station.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "CSM_center", compSystemID = 3, compSetting = 300, shipTYPE = "COCKPIT",
+	},
+	Event80 = {
+		Line = "Bien. Vous devez être approximativement à 300 mètres de la station et stationnaire.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event81 = {
+		Line = "Maintenant effectuez une petite translation vers la droite. La plateforme commence à dériver vers la gauche dans votre champ de vision.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "CONTROL_modeC", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event82 = {
+		Line = "Arrêtez le mouvement en effectuant une translation vers la gauche. Centrez la plateforme dans votre champ de vision.",
+		Delay = 3000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "CONTROL_modeD", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event83 = {
+		Line = "Continuez à utiliser la poussée gauche/droite jusqu'à ce que la plateforme reste au centre de l'écran horizontalement.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event84 = {
+		Line = "Finalement, utilisez la poussée vers le haut/bas jusqu'à ce que la plateforme soit centrée verticalement dans votre champ de vision.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event85 = {
+		Line = "Comme vous le voyez, la poussée générée par le plasma surchauffé produit par le MTS peut rendre difficile une stabilisation complète.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event86 = {
+		Line = "Vous pouvez obtenir une meilleure précision en passant en mode 'Gaz Froid'. Faites le avec le bouton de contrôle sur le panneau MTS.",
+		Delay = 300, message_LENGTH = 1, object_ID = 170,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "MTS_modeD", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event87 = {
+		Line = "Le mode 'Gaz Froid' écrase tous les autres modes MTS. Dans ce mode, le gaz est ejecté directement des moteurs RCS sans être ionisé et chauffé.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event88 = {
+		Line = "Cela produit beaucoup moins de vitesse de poussée, mais offre une plus grande précision. En utilisant le gaz froid, essayez de vous déplacer à moins de 100 mètres de la station.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event89= {
+		Line = "Si vous avez réussi à rester stationnaire, félicitations. Vous venez de réussir votre premier rendez-vous orbital.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event90 = {
+		Line = "Si non, continuez à pratiquer si vous voulez. Les collisions entre objets sont désactivées pour le moment, donc ne vous inquiétez pas si vous heurtez la station.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event91 = {
+		Line = "Vous aurez BESOIN de savoir comment utiliser le RCS pour toutes les manoeuvres que vous voudrez faire, comme l'amarrage. Pratiquez souvent...",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event92 = {
+		Line = "Pour démarrer la dernière portion de ce tutoriel, désactivez le mode 'Gaz Froid'.",
+		Delay = 1000, message_LENGTH = 1, object_ID = 170,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "MTS_modeD", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event93 = {
+		Line = "Maintenant, utilisez le bouton rotatif pour sélectionner le mode 'BSTR ENABLE'. Cela signifie 'ACTIVER BOOSTER'.",
+		Delay = 300, message_LENGTH = 1, object_ID = 145,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "MTS_mode", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event94 = {
+		Line = "Dans ce mode, le MTS peut rediriger une portion du plasma généré dans le moteur principal du vaisseau si il a un 'MTS BOOST NOZZLE' installé.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event95 = {
+		Line = "Orientez votre vaisseau pour que vous ne soyez plus pointé vers la station, et faites face à l'espace.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event96 = {
+		Line = "Avant d'utiliser l'accélérateur du Booster, Regarder le 'Mini-ATH' sur la droite du VMS. Il vous fournit des données sur votre orbite.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event97 = {
+		Line = "Si vous n'êtez pas familier, votre 'apoastre' est le plus haut point de votre orbite actuelle. Le point auquel vous êtes le plus éloigné du corps que vous orbitez.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event98 = {
+		Line = "A l'apoastre, votre vélocité orbitale est à son plus bas.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event99 = {
+		Line = "Can vous passez l'apoastre votre vélocité orbitale augmente alors que la gravité du corps vous attire plus près de lui.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event100 = {
+		Line = "Quand vous atteignez le point le plus bas de votre orbite, vous êtes au plus proche de la surface, vous êtes alors au 'Periastre'.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event101 = {
+		Line = "Lorsque vous appliquez une poussée de translation, votre vélocité orbitale change, ce qui altère le profil de votre orbite. L'apoastre et le periastre se mettront alors à jour.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event102 = {
+		Line = "Ne laissez pas votre periastre tomber trop bas dans la basse atmosphère, ou à la surface directement. Votre vaisseau n'est pas conçu pour le vol atmosphérique.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event103 = {
+		Line = "Il vous est aussi affiché le temps avant de rejoindre l'apoastre et le periastre.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event104 = {
+		Line = "L''Orbital V' (V pour Vélocité) est votre vitesse relative au corps autour duquel vous orbitez, exprimé en mètres par secondes.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event105 = {
+		Line = "Enfin, l'Angle Zénithal est l'angle entre le vecteur créé par le centre du corps orbité avec votre position, et votre vecteur de vélocité.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event106 = {
+		Line = "Un 'Vecteur Vélocité' exprime à la fois la direction et le taux auquel vous vous déplacez dans l'espace.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event107 = {
+		Line = "Typiquement, le Zénith se situe à environs 90 degrès quand vous êtes dans une orbite stable.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event108 = {
+		Line = "Ceci étant dit, si vous pointez vers l'espace profond, allez y et activé le Booster principal en bougeant l'accélérateur à 100.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "MTS_boostlevel", compSystemID = 1, compSetting = 95, shipTYPE = "COCKPIT",
+	},
+	Event109 = {
+		Line = "En fonction de la température du plasma, cela peut prendre un petit moment avant pour que la poussée générée atteigne la poussée demandée.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event110 = {
+		Line = "Vous allez rapidement vous éloigner de la station. Si vous passez en vue externe, vous pouvez voir le booster en action.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event111 = {
+		Line = "Aussi, prenez garde que votre apoastre et periastre changent très rapidement. Encore, gardez un oeil sur le periastre. Ne le laissez pas descendre sous les 160 kilomètres.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event112 = {
+		Line = "Repassez votre accélérateur à 0 pourcents.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "MTS_boostlevel", compSystemID = -1, compSetting = 5, shipTYPE = "COCKPIT",
+	},
+	Event113 = {
+		Line = "Il y a deux manières de défaire l'accélération que vous venez d'ajouter: faire demi tour et booster de nouveau, ou utiliser le déflécteur de Boost.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event114 = {
+		Line = "L'avantage du déflécteur est que vous n'avez pas besoin de vous aligner Retrograde (vers l'arrière) de votre vecteur vélocité.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event115 = {
+		Line = "Le désavantage est qu'à cause de l'angle de poussée cela produit moins de poussée au final.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event116 = {
+		Line = "Activez le déflecteur avec le bouton 'BOOST DEFLECTOR'.",
+		Delay = 300, message_LENGTH = 1, object_ID = 171,
+		System = "NONE", SystemID = 0, Setting = 1, 
+		compSystem = "MTS_boostbrake", compSystemID = -1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event117 = {
+		Line = "Vous remarquerez la lumière d'alerte sur le panneau droit 'CAW' vous rappelant que le déflecteur est actif.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event118 = {
+		Line = "Remettez les gaz à 100%.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "MTS_boostlevel", compSystemID = 1, compSetting = 95, shipTYPE = "COCKPIT",
+	},
+	Event119 = {
+		Line = "Si vous passez en vue externe, vous pourrez voir comment la poussée est déviée.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event120 = {
+		Line = "Repassez les gaz à 0%...",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "MTS_boostlevel", compSystemID = -1, compSetting = 5, shipTYPE = "COCKPIT",
+	},
+	Event121 = {
+		Line = "... et désactivez le déflécteur de boost.",
+		Delay = 300, message_LENGTH = 1, object_ID = 171,
+		System = "NONE", SystemID = 0, Setting = 1, 
+		compSystem = "MTS_boostbrake", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event122 = {
+		Line = "Enfin, regardez les autres modes de poussée du MTS.",
+		Delay = 1000, message_LENGTH = 1, object_ID = 145,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event123 = {
+		Line = "L''EBP ENBL' correspond à l'activation du mode d'urgence. Cela envoie quasiement tout le plasma dans le booster.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event124 = {
+		Line = "L'autorité RCS est sévèrement limitée dans ce mode.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event125 = {
+		Line = "Prenez garde, utiliser ce mode à pleine puissance pendant trop longtemps risque d'endommager le système MTS.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event126 = {
+		Line = "Avec 'CBT MODE' (Mode Combat) , l'autorité RCS est presque au même niveau qu'avec le mode 'RCS ONLY', tout en maintenant la capacité du booster à fournir de la poussée.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event127 = {
+		Line = "Vous l'utiliserez en combat quand vous voudrez faire une rapide rotation tout en maintenant la possibilité de faire des rapides changements de vélocité.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event128 = {
+		Line = "Le mode 'RCS ONLY' isole le booster pour que vous ayez un maximum d'autorité sur votre orientation.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event129 = {
+		Line = "Cela conclu ce tutoriel. Il y avait beaucoup de choses à intégrer, mais si vous êtes arrivé jusqu'içi c'est que vous vous êtes bien débrouillé.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event130 = {
+		Line = "Continuez votre vol si vous voulez et continuez à expérimenter avec les contrôles du vaisseau.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event131 = {
+		Line = "Le prochain tutoriel va couvrir les procédures de démarrage ainsi que la communication avec la station et le désamarrage depuis un port extérieur.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+}
+
+--*************************************
+
+--OTHER NOTES:
+----Flights with capital ships (anything that can launch another ship) can only have 1 ship per flight
+----The first task must ALWAYS be an arrival task (Type = 4)
+----Manually assigned tail numbers, for missions, are in the range of primary 80 - 99, UNLESS using a pre-existing ship (if the tail number is not found, then a new ship created with a random tail number)
+----flights with either primary/secondary of -1, or ranges outside of primary 80 - 99, will be randomly assigned
+----the ship name (sName) is used to link a flight to their mothership. MAKE SURE THE NAMES ARE IDENTICAL!
+

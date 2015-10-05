@@ -1,0 +1,92 @@
+-- *** Localization.ROG (localization text file)		***
+-- *** First Created on 13NOV13							***
+-- *** Last Revised by Michael Juliano on 14JUL14		***
+-- *** Copyright Digits Crossed Interactive, 2013-2014	***
+
+-- Notes:
+----Simply translate the text to your naitive language to localize the ingame UI
+----!!! Do NOT re-order the text item order !!! 
+
+GENERALcomms = {}
+
+--*************************************
+--*************************************
+GENERALcomms = {
+	TotalItems = 68,
+	Item1 = {Name = "uiTO",					Text = "A: "},
+	Item2 = {Name = "uiFROM",				Text = "De: "},
+	Item3 = {Name = "uiSTCDOCK",			Text = "Contrôle"},
+	Item4 = {Name = "uiSTCAPPROACH",		Text = "Approche Station"},
+	Item5 = {Name = "uiSTCDEPART",			Text = "Départ Station"},
+	Item6 = {Name = "uiTHISIS",				Text = "Içi "},
+	Item7 = {Name = "uiCHECKIN",			Text = "Enregistrement..."},
+	Item8 = {Name = "uiCHECKOUT",			Text = "Terminer..."},
+	Item9 = {Name = "uiREQrefuel",			Text = "Demande de ravitaillement."},
+	Item10 = {Name = "uiREQrearm",			Text = "Demande de réarmement."},
+	Item11 = {Name = "uiMTSstart",			Text = "Demande Allumage MTS."},
+	Item12 = {Name = "uiMTSstop",			Text = "Arrêt du MTS."},
+	Item13 = {Name = "uiFLUXstart",			Text = "Demande ignition LENR."},
+	Item14 = {Name = "uiREQdepart",			Text = "Demande l'autorisation de départ."},
+	Item15 = {Name = "uiFLUXstop",			Text = "Arrêt du LENR."},
+	Item16 = {Name = "uiREQtakeoff",		Text = "Prêt à partir."},
+	Item17 = {Name = "uiCNCLrefuel",		Text = "Annuler Ravitaillement."},
+	Item18 = {Name = "uiCNCLrearm",			Text = "Annuler Réarmement."},
+	Item19 = {Name = "uiSERVcncld",			Text = "Service Annulé."},
+	Item20 = {Name = "uiAPPRVLwait",		Text = "Attendez pour l'autorisation. Terminé."},
+	Item21 = {Name = "uiDENYgnrl",			Text = "Autorisation Regusée."},
+	Item22 = {Name = "uiCNCLdepart",		Text = "Annuler demande de départ."},
+	Item23 = {Name = "uiYOU",				Text = "(VOUS)"},
+	Item24 = {Name = "uiCHECKEDin",			Text = "On vous a enregistré. Terminé"},
+	Item25 = {Name = "uiTOANY",				Text = "A quiconque à portée, "},
+	Item26 = {Name = "uiREQmaint",			Text = "Demande de services."},
+	Item27 = {Name = "uiCHECKEDout",		Text = "Compris. N'oubliez pas de sécurisez votre vaisseau. Terminé"},
+	Item28 = {Name = "uiAPPRVLmaint",		Text = "Services Disponibles. Notifiez contrôle une fois terminé. Terminé."},
+	Item29 = {Name = "uiAPPRVLdepart",		Text = "Autorisation de départ approuvée. Notifiez contrôle avant ignition LENR. Terminé."},
+	Item30 = {Name = "uiAPPRVLallow",		Text = "Autorisation accordée. Terminé."},
+	Item31 = {Name = "uiAPPRVLlenrS",		Text = "Vous êtes autorisés à initier le réacteur LENR. Notifiez contrôle une fois terminé. Terminé."},
+	Item32 = {Name = "uiAPPRVLmtsS",		Text = "Autorisé à allumer le MTS. Notifiez le contrôle une fois terminé. Terminé."},
+	Item33 = {Name = "uiDENYlenr",			Text = "Autorisation LENR refusée. Je répète, vous n'êtes pas autorisé a allumer le LENR. Terminé."},
+	Item34 = {Name = "uiDENYmts",			Text = "Autorisation MTS refusée. Je répète, autorisation MTS refusée. Terminé."},
+	Item35 = {Name = "uiWARNmts",			Text = "Vous n'êtes pas autorisé à l'allumage du MTS. Eteignez IMMEDIATEMENT !"},
+	Item36 = {Name = "uiWARNlenr",			Text = "Vous n'êtes pas autorisé à l'allumage du LENR. Eteignez IMMEDIATEMENT !"},
+	Item37 = {Name = "uiDENYmaint",			Text = "Services non disponibles pour le moment. Terminé."},
+	Item38 = {Name = "uiAPPRVLlenrD",		Text = "Bien reçu. Vous êtes autorisé à allumer le LENR. Notifiez le contrôle lorsque vous êtes prêt au départ. Terminé."},
+	Item39 = {Name = "uiAPPRVLmtsD",		Text = "Bien reçu. Autorisé à l'allumage d'urgence du MTS. Gardez la poussée sous les 5 pourcents. Terminé."},
+	Item40 = {Name = "uiWARNmntpwr",		Text = "Veuillez couper l'énergie de maintenance pour que le service ombilical se déconnecte. Terminé"},
+	Item41 = {Name = "uiMAINTPWRdisabled",	Text = "Energie de maintenance décactivé. Préparez vous pour les fréquences de départ."},
+	Item42 = {Name = "uiUMBILICALretract",	Text = "Connection Ombilicale déconnectée. Préparez vous à être libéré."},
+	Item43 = {Name = "uiMAGCLAMPrelease",	Text = "Libéré. Allez au SAS et tenez vous prêt des portes extérieures. Terminé."},
+	Item44 = {Name = "uiCOMEin",			Text = "Entrez. Terminé."},
+	Item45 = {Name = "uiAPPROACHing",		Text = "En approche. Terminé."},
+	Item46 = {Name = "uiREQdocking",		Text = "Demande d'amarrage avec vous. Terminé."},
+	Item47 = {Name = "uiREQtransit",		Text = "Demande de transite à travers l'espace contrôlé. Terminé."},
+	Item48 = {Name = "uiACKannounce",		Text = "On vous reçoit. Terminé"},
+	Item49 = {Name = "uiAPPRVLapproach",	Text = "Reçu. Continuez l'approche et contactez le contrôle station "},
+	Item50 = {Name = "uiAPPRVLdocking",		Text = "Amarrage approuvé. Approchez à 300 mètres et stabilisez pour l'approche finale. Terminé."},
+	Item51 = {Name = "uiCHECKEDoutaprch",	Text = "Copy your down. Handing you over to Control. Out."},
+	Item52 = {Name = "uiCHECKEDoutdpart",	Text = "Reçu. Bon vol. Terminé."},
+	Item53 = {Name = "uiDENYdockOOR",		Text = "Approchez à moins de 100 kilomètres et demandez encore. Terminé."},
+	Item54 = {Name = "uiDENYdockcomp",		Text = "Vaisseaux non compatibles pour amarrage. Demande rejetée. Terminé."},
+	Item55 = {Name = "uiCNCLdocking",		Text = "Annulation de la demande d'amarrage. Reçu ?"},
+	Item54 = {Name = "uiDENYdockbig",		Text = "Votre vaisseau est trop large pour vous amarrer à nous. Demande rejetée. Terminé."},
+	Item55 = {Name = "uiSTANDBYdockA",		Text = "Désolé, pas d'emplacements disponibles pour le moment. Restez en place et attendez, ou annulez la demande. Terminé."},
+	Item56 = {Name = "uiSENDextlocal",		Text = "Réglez le localisateur pour le collier extérieur "},
+	Item57 = {Name = "uiUSING",				Text = " utilisant "},
+	Item58 = {Name = "uiDEPARTED",			Text = "Vous êtes au delà de la limite de portée et libre de naviguer. Bon voyage. Terminé."},
+	Item59 = {Name = "uiDEPARTfreq",		Text = "Réglez le départ station sur "},
+	Item60 = {Name = "uiCOLLARrelease",		Text = "Libéré. Utilisez les limitations d'amarrage pour libérer la zone. Terminé."},
+	Item61 = {Name = "uiWITHINthreeH",		Text = "Vous êtes à moins de 300 mètres. Arrêtez l'approche et couper votre coeur MTS. Terminé."},
+	Item62 = {Name = "uiSTBLZcont",			Text = "Coupure du MTS confirmée. Vous êtes autorisé à l'approche finale avec le limiteur STC. Terminé."},
+	Item63 = {Name = "uiWITHINeightH",		Text = "En approche, 800 mètres. Ralentissez à 20 mètres par secondes. Terminé."},
+	Item64 = {Name = "uiWITHINfiftnK",		Text = "Vous êtes à moins de 1500 mètres. Ralentissez à 40 mètres par secondes. Terminé."},
+	Item65 = {Name = "uiWITHINoneH",		Text = "Vous êtes à moins de 100 mètres. Rangez toute obstructions immédiatement. Terminé."},
+	Item66 = {Name = "uiDOCKDcontact",		Text = "Contant. Tenez vous prêt... Terminé."},
+	Item67 = {Name = "uiDOCKDconnect",		Text = "Connexion verrouillée et stable. Activation de l'ombillique. Terminé."},
+	Item68 = {Name = "uiDOCKDumbilical",	Text = "Vous êtes autorisé à la procédure d'arrêt, ou contactez STC pour services. Bienvenu. Terminé."},
+}
+
+--*************************************
+--*************************************
+
+
+--Item = {Name = "", Text = ""},

@@ -1,0 +1,575 @@
+-- ***FireArc_INTRO File***
+-- ***Created by Michael Juliano on 14MAR15***
+
+-- NOTES:
+-- --MISSION TRIGGER				conditions required to start the mission
+-- ----TYPE:							ASAP, EVENT, REGION
+-- ------									[ASAP: mission starts immediately. Normally for single missions]
+-- ------									[EVENT: some event triggers the mission to begin]
+-- ------									[REGION: a ship enters a region of space]
+-- ----ACTION:							The action that triggers the start TYPE (if EVENT or REGION)
+-- ------									[FOR EVENT: ARRIVES, DEPARTS, DESTROYED, ATTACKED, UNDOCKS, DOCKS, INFLIGHT]
+-- ------									[FOR REGION: ENTERS, EXITS]
+-- ----SUBJECT							(PLAYER_HOST, FRIENDLY, ENEMY, CIVILIAN, FACTION, SHIP, PILOT)
+-- ----SUBJECT NAME(sNAME)				(name of ship, pilot, faction)
+
+-- --TRIGGER REGION DATA
+-- ----RADIUS							(triggering radius around region subject in km)
+-- ----SUBJECT							(PLAYER, FRIENDLY, ENEMY, CIVILIAN, SHIP, PILOT)
+-- ----sNAME							(name of ship, pilot, faction)
+-- --STARTDELAY:						time in milli-seconds after the mission is triggered before it actually begins
+
+-- --START LOC						where a flight departs from to enter the mission area
+-- ----TYPE:							(PLAYER, MOTHERSHIP, CURRENT, ORBIT, ETC)
+-- ------									[MOTHERSHIP then flight will only spawn from a mothership. Give mothership details in]
+-- ------									[if PLAYER starts in space using at range from mission location, using detailA for: inORBIT(1), etc., etc.,]
+-- ------									[if ORBIT then use details A, B and C for system, planet and moon ID's if know, else use -1's and use name only]
+-- ------									[if CURRENT (as in location) then us details A, B and C for x, y and z position (in meters)]
+-- ----sNAME:							(name of region target)
+-- ----radius:							if ORBIT then this is the altitude above the body in km
+-- --END LOC						where a flight flies to end their part in the mission
+-- ----END REGION OBJECT				(MOTHERSHIP, CURRENT[location], SYSTEM, PLANET, MOON, SUN, ETC)	
+-- ----END REGION NAME					(name of region target)
+-- --FLIGHT STARTSTATE:				
+-- ----Type:						ALL Systems Up(1), SystemActivated(2), SystemDisabled(4) OR System Destroyed(8), React Tank Empty(16), Coolant Tank Empty(32), LSS tank EMPTY(64) 
+-- ----DetailA:						CSM(1), BATT(2), FCM(4), REACT(8), TMS(16), MTS(32), LENR(64), FLUX(128), <--used with types 2, 4 and 8
+-- ----DetailB:						LSS(1), ECS(2), COMM(4), NAS(8), notSECURED(16) <--used with types 2, 4 and 8
+-- ----DetailC:						when detailA or B is set to a mult-unit system (such as MES), then this denotes WHICH unit in the system is affected (16 = ALL)						
+-- --FLIGHT TASK:
+-- ----Action:						ARRIVE, DEPART, ATTACK, NAVIGATE, ESCORT, TRAIL, ENTERORBIT, MAINTAINORBIT, DEFENDAREA, DEPLOY, COMBATCOMMAND
+-- ----Method:						MAGIC, MOTHERSHIP, FLUXDRIVE, DARKDRIVE, MTSBURN, PRIWPN, SECWPN, TERWPN, ANYWPNS
+-- ----Trigger:						ASAP, SHIPARRIVES, SHIPDEPARTS, FLIGHTARRIVES, FLIGHTDEPARTS, SHIPDESTROYED, FLIGHTDESTORYED,
+-- ----									SHIPDISABLED, SHIPATTACKED, SHIPDAMAGED, ASAP
+-- ----Delay:						in m/s, delay time before starting task
+-- ----Time Limit:					in m/s, time allowed to complete task. 0 for unlimited
+-- --FLIGHT TASK TARGET PRI & SEC:
+-- ----Type:						SHIP, CELESTIAL, SATELLITE, MINE, NONE
+-- ----tDetail:						STATION, FIGHTER, BOMBER, FREIGHTER, ETC, STAR, PLANET, MOON, ANYSHIP, ATTACKCRAFT (any small fighter/bomber/freighter), ESCORTSHIP, CAPITALSHIP
+-- ----tNum_PRI, SEC & TER:			ship Tail number, system/planet/moon ID, -1 if unknown (assign random)
+-- ----GenNewShips:					if a ship with the requested tail number is not found can a new one be created to fill its place? 0(NO), 1(YES)
+-- ----tName:						Name of object if ID's are unknown
+-- --TargetIFF:
+-- ----Type:						Faction, Character, ENEMY, FRIENDLY, CIVILIAN, ANY
+-- ----tDetail:						Faction Type
+-- ----tName:						Character Name if character, or Faction Name if a generalized faction is used (such as "ColonyGov")
+-- --SPAWN TOTAL:					number of times flight is spawned
+-- --PLAYER ALLOWED:				can the player fly a ship in this flight (is an interior available)
+-- --PLAYER SHIP ALLOWED:			can the player use one of their owned ships in this flight
+-- --SHIP TOTAL:					number of ships in this flight
+-- --UI NAME:						Name of ship or RANDOM. For flights of more than one it becomes "name" 1, 2, 3, etc
+-- --preDefSHIP:					pre-defined ship name (from Mod/Ships/PreDefined folder) or RANDOM (not yet implemented)
+-- --PILOT NAME:					Name of pilot, ROSTER or RANDOM. For multi-crewed ships this is the captain's name
+
+-- END NOTES
+
+T1_FireArc_INTRO = {}
+T1_FireArc_INTRO_TUTscript = {}
+
+--*************************************
+--*************************************
+T1_FireArc_INTRO = {
+	UIName							= "Tutoriel 1: Introduction",
+	UIDesc							= "Une brève introduction à Rogue System, et la version prototype du 'FireArc'",
+	UIBriefing						= "Bienvenu dans Rogue System. Dans ce premier tutoriel vous serez introduit au mouvements, contrôles et interactions basiques avec votre vaisseau. On vous donnera aussi un bref résumé de la version prototype du chasseur d'attaque 'FireArc'. Prenez votre temps et regardez les alentours: votre vaisseau est pour le moment sur une orbite stable, donc pas besoin de se précipiter.\r\n \r\nCette version du 'FireArc' a été testée avec toutes les fonctionnalités de vaisseau existantes à ce jour. Il sera bientôt re conceptualisé dans son incarnation finale pour être utilisé dans le première campagne RogueSystem.",
+	has_TUTORIAL					= 1,
+
+	MissionTrigger					= {Type = "ASAP", Action = "NONE", Subject = "NONE", sName = "NONE"},
+	tRegion							= {Radius = 0.0, Subject = "PLAYER", sName = "NONE"},
+	StartDelay						= 0,
+
+	critical_MUSTdo					= 0,
+
+	Flight1 = {
+		UIName						= "Trainer",
+		Owner						= {Type = "Faction", Subject = "FactionA", sName = "NONE"},
+		StartState					= {Types = 1, DetailA = 0, DetailB = 160, DetailC = 0},
+		StartLoc					= {Degrees = 270.0, Radius = 853.0, Subject = "ORBIT", DetailA = 1, DetailB = 3, DetailC = 1, DetailD = 15, sName = "NONE"},
+		StartROT					= {x = 0.0, y = 0.0, z = 0.0},
+		SpawnTotal					= 1,
+		playerALLOWED				= 1,
+		playerShipALLOWED			= 0,
+		ShipTotal					= 1,
+		tailNUMBER1					= {Pri = -1, Sec = -1},																				-- Pri & Sec tail number identifier	XX-xxxx
+		genNewShips					= 1,
+		preDefSHIP					= "FireArc_BASIC",
+		PilotName					= "RANDOM",
+		TaskTotal					= 2,
+		Task1 = {
+			Task					= {Action = "ARRIVE", Method = "MAGIC", Trigger = "ASAP", sName = "NONE", Delay = 0},
+			TimeLimit				= -1,
+			TargetPRI				= {Type = "NONE"},
+			TargetIFF				= {Type = "NONE"},
+			isGOAL					= 0,
+		},
+		Task2 = {
+			TimeLimit				= -1,
+			Task					= {Action = "NAVIGATE", Method = "NONE", Trigger = "ASAP", sName = "NONE", Delay = 0},
+			TargetPRI				= {Type = "SHIP", Subject = "ATTACKSHIP", DetailA = -1, DetailB = -1, DetailC = -1, sName = "NONE"},
+			TargetIFF				= {Type = "Faction", Subject = "ColonyGov", sName = "Dunna Honrad"},
+			isGOAL					= 0,
+		},
+	},
+}
+
+T1_FireArc_INTRO_TUTscript = {
+	Event1 = {
+		Line = "Pendant le tutoriel, so vous voyez '(CONT)', utilisez la commande 'UTILISER' pour continuer le tutoriel. Par défaut cela est lié au clic gauche de votre souris.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
+	},
+	Event2 = {
+		Line = "Bienvenu à bord du prototype du 'FireArc'. Utilisez la souris pour regarder les alentours.",
+		Delay = 500, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
+	},
+	Event3 = {
+		Line = "Si vous avez activé le suivi de tête (TrackIR), vous pouvez tourner votre tête indépendamment de votre corps.",
+		Delay = 500, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
+	},
+	Event4 = {
+		Line = "Par défaut, vous pouvez vous déplacer en utilisant les touches W, A, S et D.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "FPS_action", compSystemID = -1, compSetting = -1, shipTYPE = "BOMBER",
+	},
+	Event5 = {
+		Line = "Laissez appuyé sur CTRL-Gauche pour vous accroupir, et SHIFT-Gauche pour courir. Vous pouvez sauter en appuyant sur ESPACE.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
+	},
+	Event6 = {
+		Line = "Le petit point au centre de l'écran est votre centre de vision. Lorsqu'il est au dessus de quelque chose d'interactible un texte d'aide apparaîtra au dessous.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
+	},
+	Event7 = {
+		Line = "Passez votre point de vision au dessus de l'interrupteur, se situant au milieu du vaisseau, et faites un clic gauche pour éteindre les lumières.",
+		Delay = 500, message_LENGTH = 1, object_ID = 18,
+		System = "INTFLOOD_", SystemID = -1, Setting = 1, 
+		compSystem = "INTFLOOD_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
+	},
+	Event8 = {
+		Line = "Bien. Maintenant, rallumez les.",
+		Delay = 1000, message_LENGTH = 1, object_ID = 18,
+		System = "INTFLOOD_", SystemID = -1, Setting = 0, 
+		compSystem = "INTFLOOD_", compSystemID = -1, compSetting = 1, shipTYPE = "BOMBER",
+	},
+	Event9 = {
+		Line = "Bien joué. Vous utiliserez la même méthode pour interagir avec les autres contrôles situés sur le vaisseau.",
+		Delay = 500, message_LENGTH = 1, object_ID = -1,
+		System = "INTFLOOD_", SystemID = -1, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
+	},
+	Event10 = {
+		Line = "Avec le suivi de tête désactivé, vous pouvez utiliser le bouton central de la souris pour bloquer la vue et libérer le pointeur. Cela rend plus facile pour cliquer sur certains contrôles.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
+	},
+	Event11 = {
+		Line = "Essayez, puis refaites un clic du milieu pour revenir en mode regarder. Continuez quand vous êtes prêt.",
+		Delay = 500, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = -1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
+	},
+	Event12 = {
+		Line = "Le chasseur d'assaut FireArc est une navette rapidement reconvertie. Du coup elle n'a jamais été conçue pour le combat.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = 0, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event13 = {
+		Line = "Alors qu'il n'y a pas (encore) grand chose içi, amusez vous à explorer les alentours. \r\nQuand vous êtes prêt, allez à l'avant du vaisseau et utilisez le contrôle de l'écoutille de la cabine de pilotage.",
+		Delay = 300, message_LENGTH = 1, object_ID = 7,
+		System = "NONE", SystemID = -1, Setting = 0, 
+		compSystem = "HATCH_", compSystemID = 1, compSetting = 1, shipTYPE = "BOMBER",
+	},
+	Event14 = {
+		Line = "Lorsque l'écoutille s'ouvre, entrez dans la cabine. Déplacez vous vers la droite du fauteuil de pilotage et allez bien au fond, le plus loin possible.",
+		Delay = 300, message_LENGTH = 6000, object_ID = -1,
+		System = "HATCH_", SystemID = 1, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 3, shipTYPE = "BOMBER",
+	},
+	Event15= {
+		Line = "Comme vous l'avez peut être remarqué, dans des zones critiques vous vous accoupirez automatiquement donc vous n'avez pas à laisser appuyé sur CTRL-Gauche.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = 0, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event16 = {
+		Line = "Remarquez aussi les lumières intérieures. Une fois activées, elle s'allumeront et s'éteindront automatiquement pour conserver de l'énergie.",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "NONE", SystemID = -1, Setting = 0, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event17 = {
+		Line = "Une fois tout au fond, retournez vous face à l'écoutille. Vous devez désécuriser le siège de pilotage pour pouvoir vous asseoir. Appuyez sur le bouton du fauteuil...",
+		Delay = 1000, message_LENGTH = 1, object_ID = 10,
+		System = "SEAT_", SystemID = 1, Setting = 3, 
+		compSystem = "SEAT_", compSystemID = 1, compSetting = 2, shipTYPE = "COCKPIT",
+	},
+	Event18 = {
+		Line = "Bien. Une fois que le siège s'arrête de bouger regardez le. Lorsque vous verrez 'S'asseoir dans le fauteuil de pilotage' faites un clic gauche pour vous installer.",
+		Delay = 1000, message_LENGTH = 1, object_ID = 7,
+		System = "SEAT_", SystemID = 1, Setting = 2, 
+		compSystem = "PLAYER_", compSystemID = 0, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event19 = {
+		Line = "Vous devez sécuriser le siège avant de faire quoi que ce soit d'autre. Ce bouton est sur la console sur votre gauche.",
+		Delay = 1000, message_LENGTH = 1, object_ID = 125,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "SEAT_", compSystemID = 1, compSetting = 3, shipTYPE = "COCKPIT",
+	},
+	Event20 = {
+		Line = "En fonction de votre écran et de votre largeur de vision, certains textes seront difficiles à lire.\r\nAppuyez sur le bouton droit de la souris pour zoomer.",
+		Delay = 2000, message_LENGTH = 5000, object_ID = 0,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "CAMERA_zoom", compSystemID = 0, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event21 = {
+		Line = "Maintenant, passez le fauteuil en mode de vol normal.\r\nTournez le bouton juste au dessus du bouton de sécurité du fauteuil.",
+		Delay = 1000, message_LENGTH = 4500, object_ID = 123,
+		System = "PLAYER_", SystemID = 0, Setting = 1,
+		compSystem = "SEAT_", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event22 = {
+		Line = "Maintenant que vous êtes complètement sécurisé, éteignez les lumières intérieures sur le même panneau.",
+		Delay = 500, message_LENGTH = 1, object_ID = 128,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "INTFLOOD_", compSystemID = 1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event23 = {
+		Line = "Vous devriez aussi allumer le rétro éclairage des instruments maintenant qu'il fait bien noir.",
+		Delay = 300, message_LENGTH = 1, object_ID = 129,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "INSTLIGHT_", compSystemID = 1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event24 = {
+		Line = "Comme vous pouvez le voir, ce poste de pilotage n'a pas de fenêtres. A la place, vous disposez d'une vue extérieure grâce au Système d'Ecran Fenêtré (VMS).",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event25 = {
+		Line = "Pour activer le VMS, Utilisez l'écran (HMD) en face de vous. Cliquez dessus pour le rendre actif.",
+		Delay = 500, message_LENGTH = 1, object_ID = 155,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "MFD_", compSystemID = 1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event26 = {
+		Line = "Il y a deux façon d'interagir avec le curseur HMD. Premièrement, vous pouvez utilisez les touches du panneau numérique 8, 4, 6 et 2 pour déplacer le curseur. 0 sélectionne les éléments.",
+		Delay = 500, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event27 = {
+		Line = "Deuxièmement, vous pouvez appuyer sur '.' et déplacer le curseur à la souris.Cliquer avec le bouton gauche sélectionne les éléments. Appuyez sur '.' pour sortir de ce mode.",
+		Delay = 500, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event28 = {
+		Line = "En utilisant une de ces deux méthodes, déplacez le curseur HMD sur 'DISPLAYS' et sélectionnez le.",
+		Delay = 500, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "MFD_", compSystemID = -1, compSetting = 2, shipTYPE = "COCKPIT",
+	},
+	Event29 = {
+		Line = "Maintenant, dans ce sous menu, cliquez sur le bouton 'VMS'. Une fois fait, activez le VMS en cliquant sur 'SYSTEM POWER'.",
+		Delay = 500, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "CANMON_", compSystemID = 0, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event30 = {
+		Line = "Le VMS fournit un large angle de vue sans mettre en danger votre sécurité.",
+		Delay = 500, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event31 = {
+		Line = "Comme vous pouvez le voir, un affichage tête haute (ATH) est facilement projeté pour garder les informations vitales directement dans votre champ de vision.",
+		Delay = 500, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event32 = {
+		Line = "Faites attention, les écrans du VMS peuvent être endommages, surtout en combat.Il est possible de vous retrouver à voler uniquement aux instruments.",
+		Delay = 500, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event33 = {
+		Line = "Jetez un oeil aux autres pages du HMD en utilisant les boutons du haut et du bas. Une fois prêt, cliquez sur 'SYSTEM INFO' en bas à droite.",
+		Delay = 500, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "MFD_", compSystemID = -1, compSetting = 3, shipTYPE = "COCKPIT",
+	},
+	Event34 = {
+		Line = "Chaque sous parties de 'SYSTEM INFO' donne une brève description de chaque système sélectionné. D'autres informations seront bientôt ajoutées.",
+		Delay = 500, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event35= {
+		Line = "Ces descriptions seront étendues plus tard. Et n'ont pas pour but de remplacer un vrai manuel de vol (ce qui est prévu aussi).",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event36 = {
+		Line = "Peu importe à quel point un vaisseau est avancé, il doit avoir des contrôles physiques pour permettre au pilote d'interagir avec les systèmes critiques en cas d'urgence.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event37 = {
+		Line = "Nous terminrons cette revue des systèmes avec un tour rapide des contrôles manuels, et les systèmes qu'ils gèrent.",
+		Delay = 500, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event38 = {
+		Line = "Ceci est le panneau BMS (Système de Gestion des Batteries). Les Batteries sont votre source principale d'énergie. Gardez les chargées (Vous serez heureux de l'avoir fait).",
+		Delay = 500, message_LENGTH = 1, object_ID = 154,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event39= {
+		Line = "Ensuite vous trouverez içi le panneau FCM (Gestion des Cellules de Carburant). Ces cellules de carburant peuvent fournir de l'énergie grâce à la réaction entre un carburant et un oxydant.",
+		Delay = 500, message_LENGTH = 1, object_ID = 156,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event40 = {
+		Line = "Cette énergie dure tant qu'il y a du carburant et du comburant. De temps en temps ces cellules doivent être purgées pour retirer les contaminants.",
+		Delay = 1, message_LENGTH = 1, object_ID = 156,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event41 = {
+		Line = "Ceci est le panneau ECS (Contrôle des Systèmes Eléctriques). Les sources d'énergie envoie leur sortie vers l'ECS pour qu'il la redistribue aux autres systèmes.",
+		Delay = 500, message_LENGTH = 1, object_ID = 162,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event42 = {
+		Line = "Un ECS a typiquement un Système primaire et un Système secondaire, ainsi qu'un Système principal à haut voltage pour les systèmes qui ont besoin de beaucoup d'énergie.",
+		Delay = 1, message_LENGTH = 1, object_ID = 162,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event43 = {
+		Line = "Le panneau du Système de Gestion de la Température permet au pilote de gérer manuellement la chaleur dégagée (ou sa rétention si besoin).",
+		Delay = 500, message_LENGTH = 1, object_ID = 163,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event44 = {
+		Line = "L'énergie calorifique est dissipée par différents types de radiateurs, systèmes de refroidissements passifs, ainsi que le Système de Refroidissement au Laser.",
+		Delay = 1, message_LENGTH = 1, object_ID = 163,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event45 = {
+		Line = "Sélectionnez la caméra d'orbite extérieure (F2) et vous pourrez voir les radiateurs pour les deux boucles de refroidissement en état déployés.",
+		Delay = 500, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "CAMERA_orbitcam", compSystemID = -1, compSetting = -1, shipTYPE = "COCKPIT",
+	},
+	Event46 = {
+		Line = "Il y a d'autre caméras extérieures, comme la caméra de poursuite (F3) et bien d'autre caméras statiques que vous pouvez parcourir (F4).",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event47 = {
+		Line = "Revenez à la vue intérieure (F1).",
+		Delay = 300, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "CAMERA_fpscam", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event48 = {
+		Line = "Ceci est le panneau de Gestion du Noyau Reactif. Le Noyau Réactif contient tous les consommables, à la fois volatil et inertes dont le vaisseau a besoin pour fonctionner.",
+		Delay = 1000, message_LENGTH = 1, object_ID = 164,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event49 = {
+		Line = "Le Noyaux Reactif peut être ejecté en cas d'urgence. Pour cette raison les consommables du Système de Survie (LSS) sont stockés ailleurs.",
+		Delay = 1, message_LENGTH = 1, object_ID = 164,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event50 = {
+		Line = "A votre droite se trouve le panneau du Système des Propulseurs de Manoeuvre (MTS). Le MTS fournit de la poussée pour l'orientation et la translation du vaisseau, ainsi que pour les transferts orbitaux.",
+		Delay = 1000, message_LENGTH = 1, object_ID = 166,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event51 = {
+		Line = "Alors qu'il existe beaucoup de moteurs MTS, celui ci en particulier est un moteur à sortie haute vélocité du plasma contenu magnétiquement (MSVHOP).",
+		Delay = 1, message_LENGTH = 1, object_ID = 166,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event52 = {
+		Line = "Il n'est pas destiné aux voyages interplanétaires, mais en conjonction avec le SAN (Animation Suspendue), le MTS peut vous ramener à la maison quand le moteur principal est hors service.",
+		Delay = 1, message_LENGTH = 1, object_ID = 166,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event53 = {
+		Line = "Ensuite se trouve le panneau du Système du Moteur Principal est le panneau du Réacteur Nucléaire à Basse Enérgie (MES/LENR).",
+		Delay = 1000, message_LENGTH = 1, object_ID = 165,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event54 = {
+		Line = "Le module MES peut contenir un moteur FLUX (ou tout autre moteur interplanétaire), un coeur LENR, ou les deux.",
+		Delay = 1, message_LENGTH = 1, object_ID = 165,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event55 = {
+		Line = "Le moteur FLUX est un moteur à fluctuation du vide quantique qui n'a besoin que d'énergie pour produire de la poussée. Du moment que vous avez du jus, vous avez du Delta-V.",
+		Delay = 1, message_LENGTH = 1, object_ID = 165,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event56 = {
+		Line = "Pendant ce temps, le réacteur LENR alimente le Système Principal, fournissant l'alimentation nécessaire à tous les systèmes du vaisseaux comme l'armements et les systèmes à haute consommation.",
+		Delay = 1, message_LENGTH = 1, object_ID = 165,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event57 = {
+		Line = "Le module MES peut aussi venir avec une buse de boost MTS pour permettre une grande poussée des moteurs MTS.",
+		Delay = 1, message_LENGTH = 1, object_ID = 165,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event58 = {
+		Line = "En cas d'urgence, le module MES peut être éjecté.",
+		Delay = 1, message_LENGTH = 1, object_ID = 165,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event59 = {
+		Line = "A droite se trouve aussi le panneau des communications (COMMS).",
+		Delay = 1000, message_LENGTH = 1, object_ID = 175,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event60 = {
+		Line = "COMMS gèrent les communications vaisseau à vaisseau, mais fournit aussi des données de positionnement pour les rendez-vous et les manoeuvres d'amarrage.",
+		Delay = 1, message_LENGTH = 1, object_ID = 175,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event61 = {
+		Line = "La plupart des systèmes de COMMS sont gérées par la page COMMUNICATIONS du HMD, les fonctions basiques comme l'activation du système se trouvent içi.",
+		Delay = 1, message_LENGTH = 1, object_ID = 175,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event62 = {
+		Line = "Juste en dessous se trouve le système de navigation et de pilote automatique ou NAS.",
+		Delay = 1000, message_LENGTH = 1, object_ID = 183,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event63 = {
+		Line = "L'ordinateur de navigation vous permettra de calculer les données nécessaires aux manoeuvres orbitales entre corps dans le système stellaire local.",
+		Delay = 1, message_LENGTH = 1, object_ID = 183,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event64 = {
+		Line = "Le pilote automatique vous fournit divers modes couplages à des vecteurs, ainsi que des alignements de direction et de stabilisation.",
+		Delay = 1, message_LENGTH = 1, object_ID = 183,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event65 = {
+		Line = "Ce dernier panneau gère les armements du vaisseau (WMS).",
+		Delay = 1000, message_LENGTH = 1, object_ID = 202,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event66 = {
+		Line = "WMS gère toutes les armes installées, ainsi que les capaciteurs, et l'ordinateur de suivi (TC).",
+		Delay = 1, message_LENGTH = 1, object_ID = 202,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event67 = {
+		Line = "Vous trouverez içi les contrôles manuels d'activation du capaciteur et des armes, ainsi que le bouton d'armement.",
+		Delay = 1, message_LENGTH = 1, object_ID = 202,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event68 = {
+		Line = "Enfin, sur la console gauche, vous trouverez le panneau de gestion des systèmes principaux (CSSM).",
+		Delay = 1000, message_LENGTH = 1, object_ID = 122,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event69 = {
+		Line = "Le CSSM vous permet d'interagir avec les systèmes de base comme la lumière, l'écoutille et le train d'atterissage.",
+		Delay = 1, message_LENGTH = 1, object_ID = 122,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event70 = {
+		Line = "Beaucoup de systèmes alimentent leurs données dans le CSSM pour que l'Intelligence Embarquée du Vaisseau (SOI) puisse les collecter et les surveiller.",
+		Delay = 1, message_LENGTH = 1, object_ID = 122,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event71 = {
+		Line = "Plus tard, le SOI prendra en charges des tâches du pilote pour vous aider à gérer votre vaisseau et prendre en charge les fonctions les plus complexes si vous préférez.",
+		Delay = 1, message_LENGTH = 1, object_ID = 122,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event72 = {
+		Line = "Une dernière note: Vous pouvez quitter le siège du pilote à n'importe quel moment si il est désécurisé. Une fois qu'il a finit de bouger, appuyez sur la touche 'R' par défaut. Essayez le maintenant.",
+		Delay = 1000, message_LENGTH = 1, object_ID = 125,
+		System = "PLAYER_", SystemID = 0, Setting = 1, 
+		compSystem = "PLAYER_", compSystemID = 0, compSetting = 2, shipTYPE = "COCKPIT",
+	},
+	Event73 = {
+		Line = "Bien. Maintenant, tenez vous hord de portée de l'écoutille et appuyez sur le panneau de contrôle pour ranger le siège et ouvrir l'écoutille.",
+		Delay = 500, message_LENGTH = 1, object_ID = 10,
+		System = "PLAYER_", SystemID = 0, Setting = 2, 
+		compSystem = "HATCH_", compSystemID = 1, compSetting = 1, shipTYPE = "COCKPIT",
+	},
+	Event74 = {
+		Line = "Bien joué. Ceci conclu cette introduction au chasseur d'attaque 'FireArc'. Si vous le désirez, vous pouvez continuer en mode de vol libre.",
+		Delay = 1000, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 2, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+	Event75 = {
+		Line = "Le prochain tutoriel vous fournira les bases sur comment vous pouvez manoeuvrer votre vaisseau dans l'espace.",
+		Delay = 1, message_LENGTH = 1, object_ID = -1,
+		System = "PLAYER_", SystemID = 0, Setting = 2, 
+		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "COCKPIT",
+	},
+}
+
+--*************************************
+
+--OTHER NOTES:
+----Flights with capital ships (anything that can launch another ship) can only have 1 ship per flight
+----The first task must ALWAYS be an arrival task (Type = 4)
+----Manually assigned tail numbers, for missions, are in the range of primary 80 - 99, UNLESS using a pre-existing ship (if the tail number is not found, then a new ship created with a random tail number)
+----flights with either primary/secondary of -1, or ranges outside of primary 80 - 99, will be randomly assigned
+----the ship name (sName) is used to link a flight to their mothership. MAKE SURE THE NAMES ARE IDENTICAL!
+

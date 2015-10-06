@@ -1,5 +1,7 @@
 # Rogue System traduction FR
 
+![RogSysFR](http://isiforums.net/f/attachment.php?attachmentid=18185&d=1444163310)
+
 ## Status
 Traduction en cours:
 - [x] Communications : 100%

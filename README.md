@@ -39,3 +39,8 @@ sera fortement appréciée ! Pour le moment je suis seul à travailler dessus.
 Pour le moment, faites un backup du dossier Rogue_System, dézippez le contenu de la release dans ce dossier
 et écrasez tous les conflits. Si vous avez des problèmes de crash au lancement, reprennez votre dossier de backup et 
 contactez moi.
+
+## Liens divers
+- [Post sur le Forum Rogue System consacré à la traduction](http://isiforums.net/f/showthread.php/26653-Rogue-System-en-Fran%C3%A7ais-RogSys-Patch-FR)
+- [Lien vers le site officiel de Rogue System](http://roguesystemsim.com/)
+- [Lien vers ma chaîne Youtube où je mettrais des vidéos Rogue System](https://www.youtube.com/channel/UCFAkedtc3jjDZQqqIULxqWg)

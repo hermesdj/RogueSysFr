@@ -20,28 +20,28 @@ Commands = {
 
 	Command4 = {Function = "CONTROL_roll", Description = "Roulis", should_REPEAT = 1, bindLIMITER = 1},
 	Command5 = {Function = "CONTROL_pitch", Description = "Tangage", should_REPEAT = 1, bindLIMITER = 1},
-	Command6 = {Function = "CONTROL_throttle", Description = "Accélérateur MES", should_REPEAT = 1, bindLIMITER = 1},
+	Command6 = {Function = "CONTROL_throttle", Description = "AccÃ©lÃ©rateur MES", should_REPEAT = 1, bindLIMITER = 1},
 	Command7 = {Function = "CONTROL_yaw", Description = "Lacet", should_REPEAT = 1, bindLIMITER = 1},
 	Command8 = {Function = "CONTROL_fore", Description = "Translation avant", should_REPEAT = 1},
-	Command9 = {Function = "CONTROL_aft", Description = "Translation arrière", should_REPEAT = 1},
+	Command9 = {Function = "CONTROL_aft", Description = "Translation arriÃ¨re", should_REPEAT = 1},
 	Command10 = {Function = "CONTROL_left", Description = "Translation gauche", should_REPEAT = 1},
 	Command11 = {Function = "CONTROL_right", Description = "Translation droite", should_REPEAT = 1},
 	Command12 = {Function = "CONTROL_up", Description = "Translation haut", should_REPEAT = 1},
 	Command13 = {Function = "CONTROL_down", Description = "Translation bas", should_REPEAT = 1},
 
 	Command14 = {Function = "WEAPON_modeA", Description = "Gachette secondaire WMS", SubType = 0},
-	Command15 = {Function = "CSM_trylock", Description = "Réattacher les pinces d'amarrages d'urgence", SubType = 0},
+	Command15 = {Function = "CSM_trylock", Description = "RÃ©attacher les pinces d'amarrages d'urgence", SubType = 0},
 	Command16 = {Function = "CSM_deselect", Description = "Emergency Clamp Disconnect", SubType = 0},
 
 	Command17 = {Function = "FPS_fore", Description = "Marcher vers l'avant", SubType = 0, should_REPEAT = 1},
-	Command18 = {Function = "FPS_aft", Description = "Marcher vers l'arrière", SubType = 0, should_REPEAT = 1},
-	Command19 = {Function = "FPS_left", Description = "Pas à gauche", SubType = 0, should_REPEAT = 1},
-	Command20 = {Function = "FPS_right", Description = "Pas à droite", SubType = 0, should_REPEAT = 1},
+	Command18 = {Function = "FPS_aft", Description = "Marcher vers l'arriÃ¨re", SubType = 0, should_REPEAT = 1},
+	Command19 = {Function = "FPS_left", Description = "Pas Ã  gauche", SubType = 0, should_REPEAT = 1},
+	Command20 = {Function = "FPS_right", Description = "Pas Ã  droite", SubType = 0, should_REPEAT = 1},
 	Command21 = {Function = "FPS_crouch", Description = "S'accroupir", SubType = 0, should_REPEAT = 1},
 	Command22 = {Function = "FPS_jump", Description = "Sauter", SubType = 0},
 	Command23 = {Function = "FPS_run", Description = "Courir", SubType = 0, should_REPEAT = 1},
 
-	Command24 = {Function = "BATT_select", Description = "BMS Sélection de batterie", SubType = 0},
+	Command24 = {Function = "BATT_select", Description = "BMS SÃ©lection de batterie", SubType = 0},
 	Command25 = {Function = "BATT_enable", Description = "BMS Activation de batterie", SubType = 0},
 	Command26 = {Function = "BATT_link", Description = "BMS Alim. Circuit", SubType = 0},
 	Command27 = {Function = "BATT_purge", Description = "BMS Neutralisateur d'Acide", SubType = 0},
@@ -106,7 +106,7 @@ Commands = {
 
 	Command78 = {Function = "INTFLOOD_action", Description = "Cabin Flood Lights", SubType = 0},
 
-	Command79 = {Function = "INSTLIGHT_action", Description = "Rétro éclairage des instruments", SubType = 0},
+	Command79 = {Function = "INSTLIGHT_action", Description = "RÃ©tro Ã©clairage des instruments", SubType = 0},
 
 	Command80 = {Function = "MTS_enable", Description = "MTS System Enable", SubType = 0},
 	Command81 = {Function = "MTS_source", Description = "MTS Fuel Tank Select", SubType = 0},
@@ -181,10 +181,10 @@ Commands = {
 	Command134 = {Function = "MTS_auto", Description = "MTS Nozzle Limiter Enable/Disable", SubType = 0},
 
 	Command135 = {Function = "GAME_disable", Description = "Head-Tracking Disable", SubType = 100},
-	Command136 = {Function = "GAME_mode", Description = "(DEBUG) Activer/désactiver la console", SubType = 100},
+	Command136 = {Function = "GAME_mode", Description = "(DEBUG) Activer/dÃ©sactiver la console", SubType = 100},
 
 	Command137 = {Function = "FPS_throttle", Description = "Avancer/Reculer", SubType = 0, should_REPEAT = 1, bindLIMITER = 1},
-	Command138 = {Function = "FPS_roll", Description = "Pas à gauche/droite", SubType = 0, should_REPEAT = 1, bindLIMITER = 1},
+	Command138 = {Function = "FPS_roll", Description = "Pas Ã  gauche/droite", SubType = 0, should_REPEAT = 1, bindLIMITER = 1},
 
 	Command139 = {Function = "CONTROL_sourceA", Description = "Tangage haut", should_REPEAT = 1},
 	Command140 = {Function = "CONTROL_sourceB", Description = "Tangage bas", should_REPEAT = 1},
@@ -198,7 +198,7 @@ Commands = {
 	Command148 = {Function = "CONTROL_timescaledec", Description = "MES Throttle Down", should_REPEAT = 0},
 
 	Command149 = {Function = "FPS_pitch", Description = "Regarder vers le haut/bas", SubType = 0, should_REPEAT = 1, bindLIMITER = 1},
-	Command150 = {Function = "FPS_yaw", Description = "Regarder à gauche/droite", SubType = 0, should_REPEAT = 1, bindLIMITER = 1},
+	Command150 = {Function = "FPS_yaw", Description = "Regarder Ã  gauche/droite", SubType = 0, should_REPEAT = 1, bindLIMITER = 1},
 
 	Command151 = {Function = "MTS_modeD", Description = "MTS Cold Gas Override", SubType = 0},
 

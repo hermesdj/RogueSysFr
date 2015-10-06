@@ -69,9 +69,9 @@ T7_FireArc_FLUXDRIVE_TUTscript = {}
 --*************************************
 --*************************************
 T7_FireArc_FLUXDRIVE = {
-	UIName							= "Tutoriel N°7: Utilisation du moteur FLUX",
-	UIDesc							= "Opération du moteur à poussée constante FLUX",
-	UIBriefing						= "Dans ce tutoriel vous apprendrez les bases de l'opération du moteur principal de type FLUX, un système de propulsion à accélération constante. Vous allez vous désamarrer, utiliser le moteur de FLUX pour voyager jusqu'à une autre planète voisine, puis vous amarrer à une station en orbite là bas.\r\n \r\nA FAIRE: CREER LE SCRIPT DU TUTORIEL. Jusqu'à ce que le script du tutoriel soit complet, veuillez consulter le sujet que j'ai fait sur le forum de Rogue System consacré au moteur de FLUX. Aussi, Deephack a uploadé une vidéo qui couvre aussi ce sujet. Désolé pour la gêne occasionnée....",
+	UIName							= "Tutoriel NÂ°7: Utilisation du moteur FLUX",
+	UIDesc							= "OpÃ©ration du moteur Ã  poussÃ©e constante FLUX",
+	UIBriefing						= "Dans ce tutoriel vous apprendrez les bases de l'opÃ©ration du moteur principal de type FLUX, un systÃ¨me de propulsion Ã  accÃ©lÃ©ration constante. Vous allez vous dÃ©samarrer, utiliser le moteur de FLUX pour voyager jusqu'Ã  une autre planÃ¨te voisine, puis vous amarrer Ã  une station en orbite lÃ  bas.\r\n \r\nA FAIRE: CREER LE SCRIPT DU TUTORIEL. Jusqu'Ã  ce que le script du tutoriel soit complet, veuillez consulter le sujet que j'ai fait sur le forum de Rogue System consacrÃ© au moteur de FLUX. Aussi, Deephack a uploadÃ© une vidÃ©o qui couvre aussi ce sujet. DÃ©solÃ© pour la gÃªne occasionnÃ©e....",
 	has_TUTORIAL					= 1,
 
 	MissionTrigger					= {Type = "ASAP", Action = "NONE", Subject = "NONE", sName = "NONE"},
@@ -300,7 +300,7 @@ T7_FireArc_FLUXDRIVE_TUTscript = {
 		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
 	},
 	Event2 = {
-		Line = "Il y a une plateforme d'entraînement en orbite autour de la planètre, et autour de chacune de ses lunes.",
+		Line = "Il y a une plateforme d'entraÃ®nement en orbite autour de la planÃ¨tre, et autour de chacune de ses lunes.",
 		Delay = 300, message_LENGTH = 1, object_ID = -1,
 		System = "NONE", SystemID = -1, Setting = -1, 
 		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",

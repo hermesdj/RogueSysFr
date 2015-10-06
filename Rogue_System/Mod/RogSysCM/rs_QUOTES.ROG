@@ -6,9 +6,9 @@ rs_QUOTES = {}
 
 rs_QUOTES = {
 	Total = 50,
-	Quote1 = "L'esprit de l'homme grandit dans l'espace dans lequel il lui est donné possible de fonctionner.\r\n \r\n  -  Krafft A. Ehricke, pionnier de la conquête spatiale.",
-	Quote2 = "Une bonne règle à suivre pour toute personne expérimentant avec des fusées : Supposez toujours qu'elle va exploser. \r\n \r\n  -  Revue 'Astronautics', numéro 38, Octobre 1937",
-	Quote3 = "C'était presque magique quand elle s'est élevée sans trop de bruit ou de flammes, comme si elle disait : 'Je suis resté içi assez longtemps, je pense que je vais aller me balader, si ça ne vous dérange pas.' \r\n \r\n  -  Robert Goddard, à propos du vol de la première fusée à propulsion liquide, 17 Mars 1926",
+	Quote1 = "L'esprit de l'homme grandit dans l'espace dans lequel il lui est donnÃ© possible de fonctionner.\r\n \r\n  -  Krafft A. Ehricke, pionnier de la conquÃªte spatiale.",
+	Quote2 = "Une bonne rÃ¨gle Ã  suivre pour toute personne expÃ©rimentant avec des fusÃ©es : Supposez toujours qu'elle va exploser. \r\n \r\n  -  Revue 'Astronautics', numÃ©ro 38, Octobre 1937",
+	Quote3 = "C'Ã©tait presque magique quand elle s'est Ã©levÃ©e sans trop de bruit ou de flammes, comme si elle disait : 'Je suis restÃ© iÃ§i assez longtemps, je pense que je vais aller me balader, si Ã§a ne vous dÃ©range pas.' \r\n \r\n  -  Robert Goddard, Ã  propos du vol de la premiÃ¨re fusÃ©e Ã  propulsion liquide, 17 Mars 1926",
 	Quote4 = "Do you realize what we accomplished today? Today the spaceship was born. \r\n \r\n  -  Dr. Walter Robert Domberger after the first successful flight of the A-4 rocket, 3 October 1942",
 	Quote5 = "It all looked so easy when you did it on paper -- where valves never froze, gyros never drifted and rocket motors did not blow up in your face. \r\n \r\n  -  Milton W. Rosen, rocket engineer, 1956",
 	Quote6 = "Insisting on perfect safety is for people who don't have the balls to live in the real world. \r\n \r\n  -  Mary Shafer, NASA Ames Dryden circa 1989",

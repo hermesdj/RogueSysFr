@@ -69,9 +69,9 @@ T6_FireArc_FIXWPNS_TUTscript = {}
 --*************************************
 --*************************************
 T6_FireArc_FIXWPNS = {
-	UIName							= "Tutoriel N°6: Armement Fixe en avant première",
-	UIDesc							= "Première implémentation des systèmes d'armement du FireArc",
-	UIBriefing						= "Rogue System contiendra éventuellement des armements de tous types (Rayons, Missiles, Auto Guidés, Tourelles, etc.), il n'y a pour le moment qu'une première implémentation basique d'un système fixe d'envoi de projectiles haute vélocité.\r\n \r\n Dans ce tutoriel le panneau de gestion de l'armement (WMS) et la page 'WEAPONS' du HMD seront discutés en détail. Vous apprendrez ensuite à utiliser les système de senseurs (implémentation préliminaire aussi) pour sélectionner un drone satellite d'entraînement. Enfin, vous utiliserez votre armement fixe pour envoyer des projectiles dessus.",
+	UIName							= "Tutoriel NÂ°6: Armement Fixe en avant premiÃ¨re",
+	UIDesc							= "PremiÃ¨re implÃ©mentation des systÃ¨mes d'armement du FireArc",
+	UIBriefing						= "Rogue System contiendra Ã©ventuellement des armements de tous types (Rayons, Missiles, Auto GuidÃ©s, Tourelles, etc.), il n'y a pour le moment qu'une premiÃ¨re implÃ©mentation basique d'un systÃ¨me fixe d'envoi de projectiles haute vÃ©locitÃ©.\r\n \r\n Dans ce tutoriel le panneau de gestion de l'armement (WMS) et la page 'WEAPONS' du HMD seront discutÃ©s en dÃ©tail. Vous apprendrez ensuite Ã  utiliser les systÃ¨me de senseurs (implÃ©mentation prÃ©liminaire aussi) pour sÃ©lectionner un drone satellite d'entraÃ®nement. Enfin, vous utiliserez votre armement fixe pour envoyer des projectiles dessus.",
 	has_TUTORIAL					= 1,
 
 	MissionTrigger					= {Type = "ASAP", Action = "NONE", Subject = "NONE", sName = "NONE"},

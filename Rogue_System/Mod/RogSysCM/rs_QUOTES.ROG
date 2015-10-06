@@ -1,0 +1,63 @@
+-- *** Mod-Specific Quotes File						***
+-- *** Created on 16APR2015							***
+-- *** Copyright Digits Crossed Interactive 2015	***
+
+rs_QUOTES = {}
+
+rs_QUOTES = {
+	Total = 50,
+	Quote1 = "L'esprit de l'homme grandit dans l'espace dans lequel il lui est donné possible de fonctionner.\r\n \r\n  -  Krafft A. Ehricke, pionnier de la conquête spatiale.",
+	Quote2 = "Une bonne règle à suivre pour toute personne expérimentant avec des fusées : Supposez toujours qu'elle va exploser. \r\n \r\n  -  Revue 'Astronautics', numéro 38, Octobre 1937",
+	Quote3 = "C'était presque magique quand elle s'est élevée sans trop de bruit ou de flammes, comme si elle disait : 'Je suis resté içi assez longtemps, je pense que je vais aller me balader, si ça ne vous dérange pas.' \r\n \r\n  -  Robert Goddard, à propos du vol de la première fusée à propulsion liquide, 17 Mars 1926",
+	Quote4 = "Do you realize what we accomplished today? Today the spaceship was born. \r\n \r\n  -  Dr. Walter Robert Domberger after the first successful flight of the A-4 rocket, 3 October 1942",
+	Quote5 = "It all looked so easy when you did it on paper -- where valves never froze, gyros never drifted and rocket motors did not blow up in your face. \r\n \r\n  -  Milton W. Rosen, rocket engineer, 1956",
+	Quote6 = "Insisting on perfect safety is for people who don't have the balls to live in the real world. \r\n \r\n  -  Mary Shafer, NASA Ames Dryden circa 1989",
+	Quote7 = "There's this whole myth about rocket science. It's really not that hard. It's not brain surgery. \r\n \r\n  -  John Powell, founder JP Aerospace, Wired magazine, July 2006",
+	Quote8 = "Everything looks nonsensical before it works. \r\n \r\n  -  Burt Rutan, designer of SpaceShipOne regarding an experienced aerodynamicist who contacted him and said the design wouldn't work, circa 2011",
+	Quote9 = "There are a thousand things that could happen when you go and light a rocket engine and only one of them is good. \r\n \r\n  -  Tom Mueller, SpaceX propulsion chief January 2012",
+	Quote10 = "Space is hard, and worth it. We will persevere and move forward together. \r\n \r\n  -  Richard Branson following the Virgin Galactic Spaceship Two crash. 31 October 2014",
+	Quote11 = "We don't ever want to go to war in space, but we need to be prepared to fight a war in that environment. \r\n \r\n  -  General John E. Hyten, US Air Force Space Command. Speech at the Capitol Hill Club, 5 December 2014",
+	Quote12 = "The shape of the heavens is of necessity spherical; for that is the shape most appropriate to its substance and also by nature primary. \r\n \r\n  -  Aristotle, De Caelo (Onto the Heavens),  850 BCE",
+	Quote13 = "Somewhere, something incredible is waiting to be known. \r\n \r\n  -Carl Sagan",
+	Quote14 = "Extinction is the rule. Survival is the exception. \r\n \r\n  -  Carl Sagan",
+	Quote15 = "The universe is not required to be in perfect harmony with human ambition. \r\n \r\n  -  Carl Sagan",
+	Quote16 = "Life, for ever dying to be born afresh, for ever young and eager, will presently stand upon this earth as upon a footstool, and stretch out its realm amidst the stars. \r\n \r\n  -  H. G. Wells, 1920",
+	Quote17 = "Earth is just too small and fragile a basket for mankind to keep all its eggs in. \r\n \r\n  -  Robert A. Heinlein",
+	Quote18 = "This is the goal: To make available for life every place where life is possible. To make inhabitable all worlds as yet uninhabitable, and all life purposeful. \r\n \r\n  -  Hermann Oberth, Man Into Space, 1957",
+	Quote19 = "It is in the long run essential to the growth of any new and high civilization that small groups of men can escape from their neighbors and from their governments, to go and live as they please in the wilderness. A truly isolated, small and creative society will never again be possible on this planet. \r\n \r\n  -  Freeman J. Dyson, A Space-Traveler's Manifesto, 1958",
+	Quote20 = "In the long run, a single-planet species will not survive. \r\n \r\n  -  Michael Griffin, NASA administrator, Rolling Stones magazine, 23 February 2006",
+	Quote21 = "No matter how vast, how total the failure of man here on earth, the work of man will be resumed elsewhere. War leaders speak of resuming operations on this front and that, but man's front embraces the whole universe. \r\n \r\n  -  Henry Miller, 'Reunion in Brooklyn', in Sunday After The War, 1944",
+	Quote22 = "We have made remarkable progress in the last hundred years, but if we want to continue beyond the next hundred years, our future is in space. \r\n \r\n  -  Stephen Hawking, theoretical physicist, interview with Andrew Dermont of website Big Think, 6 August 2010.",
+	Quote23 = "Let's face it, space is a risky business. I always considered every launch a barely controlled explosion. \r\n \r\n  -  Aaron Cohen, NASA administrator.",
+	Quote24 = "All of a sudden, space isn't friendly. All of a sudden, it's a place where people can die. Many more people are going to die, but we can't explore space if the requirement is that there be no casualties; we can't do anything if the requirement is that there be no casualties. \r\n \r\n  -  Isaac Asimov, regards the Challenger investigation 21 April 1988",
+	Quote25 = "Space exploration is a force of nature unto itself that no other force in society can rival. \r\n \r\n  -  Neil deGrasse Tyson",
+	Quote26 = "Passion is what gets you through the hardest times that might otherwise make strong men weak, or make you give up. \r\n \r\n  -  Neil deGrasse Tyson",
+	Quote27 = "To be honest, I was more concerned about drifting endlessly into space than dying in combat. \r\n \r\n  -  Anonymous trans-lunar fighter pilot circa 2025",
+	Quote28 = "You die twice in space. Once when you run out of fuel, and again when you run out of oxygen. \r\n \r\n  -  Captain Shaun Bower, trans-lunar fighter pilot circa 2024",
+	Quote29 = "It's a sad day when spotting a shooting star causes your hair to stand on end. \r\n \r\n  -Kelly Sprack, civilian 2023",
+	Quote30 = "Orbital bombardment is a precise brand of mass murder. \r\n \r\n  -  Henry J. Cobb, Wartime journalist, August 23rd 2023",
+	Quote31 = "I felt like the Archangel Gabriel, calling down fire and brimstone. \r\n \r\n  -  Dustin K. Franklin, Joint Terminal Attack Controller, November 15th 2025",
+	Quote32 = "It is not conceivable to predict that, one day, your scratches on a whiteboard could potentially spell the doom of millions. \r\n \r\n  -  Henry C. Hodder, theoretical physicist  and head of the research team at the Lunar Hawking Radiation Detector regarding the Dark Matter weapons program. August 2nd 2028",
+	Quote33 = "Really, I tripped on it. I stubbed my toe, and out came this file folder from beneath the cabinet; already browning with age. \r\n \r\n  -  Dr. Stephen Flemming, in regards to the discovery of the Excalibur Files, December 2041",
+	Quote34 = "We have come so far as a species, and yet here we are. What a shame. \r\n \r\n  -  Brigadier General Oscar E. McCarther, on the bridge of the Dawn Star as the fleet rallied in high Europan orbit, in sensor range of the Outer System Fleet. November, 2116",
+	Quote35 = "Though there is something to be said about the perseverance of man, no segment of society should be forced to toil under the yoke of another. \r\n \r\n  -  Arthur Cohen Braun, Commander and Chief of the Outer System Defence Force. Summer, 2105",
+	Quote36 = "It would be unsafe and ultimately unethical to allow the use of Transmutation in the outer systems, where the oversight of such powerful a technology would be negligible at best. \r\n \r\n  -  Laurence A. Clark, Congressmen, October 5th, 2099",
+	Quote37 = "There was a moment of pristine clarity, and then I felt like we had ridden in on James F. Woodard's coattails. \r\n \r\n  -  Andrea Schieffer, team member on the Flux Drive project, in regards to proving the Woodard effect. January 5th 2049",
+	Quote38 = "Fire Control - 'Control, we are green across the board.'\r\nExcalibur Command - 'Acknowledged, fire at will.' \r\n \r\n  -  Last words recorded on the Excalibur before the Jovian event. November 21st, 2116",
+	Quote39 = "You know when you miss a turn while driving downtown? Well, that's deadly in space travel. \r\n \r\n  -  Jonathan Pratt, trans-lunar fighter pilot, March 10th 2025",
+	Quote40 = "You get a sensor ping, line up the vector and pull the trigger as they zip past you at thousands of kilometers an hour. The only way you know you hit anything is if a single radar ping becomes multiple radar pings. \r\n \r\n  -  Major Christien A. Ladousseur, on trans-lunar engagements during an interview on January 28th 2026 ",
+	Quote41 = "These things were airtight steel tubes with rockets on one side and guns on the other. They were built in haste, to be destroyed just as quickly. \r\n \r\n  -  Lieutenant Andrew Dryden, trans-lunar fighter pilot, circa 2025",
+	Quote42 = "I think more casualties were racked up during high-g evasive maneuvers than actual weapons impacts. \r\n \r\n  -  Commander Roger Adderman, on interplanetary combat under Flux Drive propulsion, April 24th 2110",
+	Quote43 = "There was about three hours of darkness and confusion before the core came back online. Then the real confusion began. \r\n \r\n  -  Major Jeffrey Douglas, on the moments following the Jovian event. March, 2117",
+	Quote44 = "There were two kinds of trans-lunar engagements. Transfer engagement, which is when two opposing forces crossed paths on their way between the moon and the earth; and local engagements, where one force conducted maneuvers in order to match vectors with the enemy force. They'd burn out of orbit in such a way that the return parabola brought them right up next to the enemy--like coming off a highway exit ramp to cut someone off, but everyone has guns. \r\n \r\n  -  Commander Stewart H. Rutherglen, describing trans-lunar warfare in an interview. July 6th, 2030 ",
+	Quote45 = "If cleanliness is Godliness, they're hellspawn. \r\n \r\n  -  Congressman George Watterson, regarding the outer system groups who would attempt to modify low energy Ring Reactors to achieve higher order fusion to produce heavy elements; a process that caused radiation leakage from the under-shielded reactors. Circa 2106",
+	Quote46 = "The difference? Just a couple tera electron-volts and some shielding really. Does it happen? Of course it does. I mean, it's not that hard to pump up the juice, but it's illegal as hell, and wildly dangerous. \r\n \r\n  -  Jacob Harvard, on modifying low energy Ring Reactors to transmute heavy elements. Spring 2109",
+	Quote47 = "Once, perhaps, I may have been. \r\n \r\n  -  Arthur Cohen Braun, Commander and Chief of the Outer System Defence Force, answering the question 'Are you proud of the work you've done here?' during an interview two months before he submitted the OSDF's official secession from the Core Congress, 2105",
+	Quote48 = "Where in holy hell are we? \r\n \r\n  -  Captain Daniel Priest, moments after the navigational systems of her ship; the Valiant Spring, came online after the Jovian incident. 2116",
+	Quote49 = "Don't bother, we're all in the same boat now. \r\n \r\n  -  Admiral Keith Z. Wayne, answering his tactical officer who asked if they should engage an OSDF ship moments after the Jovian event. 2116",
+	Quote50 = "Well, that's one way to end a war. \r\n \r\n  -  Anonymous transmission on higher communications, moments after the Jovian event. 2116",
+}
+
+-- \r\n \r\n  -  
+-- Quote = "",
+--End of Line

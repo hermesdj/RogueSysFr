@@ -4,15 +4,16 @@
 Traduction en cours:
 - [x] Communications : 100%
 - [ ] Tutoriels : 
-    - [x] T1 100%
-    - [x] T2 100%
-    - [x] T3 100%
-    - [ ] T4 5%
-    - [ ] T5 5%
-    - [ ] T6 5%
-    - [x] T7 100%
+    - [x] T1 : 100%
+    - [x] T2 : 100%
+    - [x] T3 : 100%
+    - [x] T4 : 100%
+    - [ ] T5 : 5%
+    - [ ] T6 : 5%
+    - [x] T7 : 100%
 - [ ] Data : 0%
-    - [ ] Liste des commandes 10%
+    - [ ] Liste des commandes : 10%
+- [ ] Citations : 5%
 
 Version de Rogue System en cours:
 **0.1.9.21.15**

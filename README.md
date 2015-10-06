@@ -3,15 +3,18 @@
 ## Status
 Traduction en cours:
 - [x] Communications : 100%
-- [ ] Tutoriels : 
+- Tutoriels : 
     - [x] T1 : 100%
     - [x] T2 : 100%
     - [x] T3 : 100%
     - [x] T4 : 100%
     - [x] T5 : 100%
-    - [ ] T6 : 25%
+    - [x] T6 : 100%
     - [x] T7 : 100%
-- [ ] Data : 0%
+- Missions :
+    - [x] Test combat IA
+    - [x] Secourir une plateforme
+- Données :
     - [ ] Liste des commandes : 10%
 - [ ] Citations : 5%
 

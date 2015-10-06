@@ -1,0 +1,186 @@
+-- ***AI_test File***
+-- ***Created by Michael Juliano on 14MAR15***
+
+-- NOTES:
+-- --MISSION TRIGGER				conditions required to start the mission
+-- ----TYPE:							ASAP, EVENT, REGION
+-- ------									[ASAP: mission starts immediately. Normally for single missions]
+-- ------									[EVENT: some event triggers the mission to begin]
+-- ------									[REGION: a ship enters a region of space]
+-- ----ACTION:							The action that triggers the start TYPE (if EVENT or REGION)
+-- ------									[FOR EVENT: ARRIVES, DEPARTS, DESTROYED, ATTACKED, UNDOCKS, DOCKS, INFLIGHT]
+-- ------									[FOR REGION: ENTERS, EXITS]
+-- ----SUBJECT							(PLAYER_HOST, FRIENDLY, ENEMY, CIVILIAN, FACTION, SHIP, PILOT)
+-- ----SUBJECT NAME(sNAME)				(name of ship, pilot, faction)
+
+-- --TRIGGER REGION DATA
+-- ----RADIUS							(triggering radius around region subject in km)
+-- ----SUBJECT							(PLAYER, FRIENDLY, ENEMY, CIVILIAN, SHIP, PILOT)
+-- ----sNAME							(name of ship, pilot, faction)
+-- --STARTDELAY:						time in milli-seconds after the mission is triggered before it actually begins
+
+-- --START LOC						where a flight departs from to enter the mission area
+-- ----TYPE:							(PLAYER, MOTHERSHIP, CURRENT, ORBIT, ETC)
+-- ------									[MOTHERSHIP then flight will only spawn from a mothership. Give mothership details in]
+-- ------									[if PLAYER starts in space using at range from mission location, using detailA for: inORBIT(1), etc., etc.,]
+-- ------									[if ORBIT then use details A, B and C for system, planet and moon ID's if know, else use -1's and use name only]
+-- ------									[if CURRENT (as in location) then us details A, B and C for x, y and z position (in meters)]
+-- ----sNAME:							(name of region target)
+-- ----radius:							if ORBIT then this is the altitude above the body in km
+-- --END LOC						where a flight flies to end their part in the mission
+-- ----END REGION OBJECT				(MOTHERSHIP, CURRENT[location], SYSTEM, PLANET, MOON, SUN, ETC)	
+-- ----END REGION NAME					(name of region target)
+-- --FLIGHT STARTSTATE:				
+-- ----Type:						ALL Systems Up(1), SystemActivated(2), SystemDisabled(4) OR System Destroyed(8), React Tank Empty(16), Coolant Tank Empty(32), LSS tank EMPTY(64) 
+-- ----DetailA:						CSM(1), BATT(2), FCM(4), REACT(8), TMS(16), MTS(32), LENR(64), FLUX(128), <--used with types 2, 4 and 8
+-- ----DetailB:						LSS(1), ECS(2), COMM(4), NAS(8), notSECURED(16) <--used with types 2, 4 and 8
+-- ----DetailC:						when detailA or B is set to a mult-unit system (such as MES), then this denotes WHICH unit in the system is affected (16 = ALL)						
+-- --FLIGHT TASK:
+-- ----Action:						ARRIVE, DEPART, ATTACK, NAVIGATE, ESCORT, TRAIL, ENTERORBIT, MAINTAINORBIT, DEFENDAREA, DEPLOY, COMBATCOMMAND
+-- ----Method:						MAGIC, MOTHERSHIP, FLUXDRIVE, DARKDRIVE, MTSBURN, PRIWPN, SECWPN, TERWPN, ANYWPNS
+-- ----Trigger:						ASAP, SHIPARRIVES, SHIPDEPARTS, FLIGHTARRIVES, FLIGHTDEPARTS, SHIPDESTROYED, FLIGHTDESTORYED,
+-- ----									SHIPDISABLED, SHIPATTACKED, SHIPDAMAGED, ASAP
+-- ----Delay:						in m/s, delay time before starting task
+-- ----Time Limit:					in m/s, time allowed to complete task. 0 for unlimited
+-- --FLIGHT TASK TARGET PRI & SEC:
+-- ----Type:						SHIP, CELESTIAL, SATELLITE, MINE, NONE
+-- ----tDetail:						STATION, FIGHTER, BOMBER, FREIGHTER, ETC, STAR, PLANET, MOON, ANYSHIP, ATTACKCRAFT (any small fighter/bomber/freighter), ESCORTSHIP, CAPITALSHIP
+-- ----								if ARRIVE via MOTHERSHIP A=host bay/port; B = docked port; C=Internal Pad(0), External Pad(1), External Collar(2)
+-- ----tNum_PRI, SEC & TER:			ship Tail number, system/planet/moon ID, -1 if unknown (assign random)
+-- ----GenNewShips:					if a ship with the requested tail number is not found can a new one be created to fill its place? 0(NO), 1(YES)
+-- ----tName:						Name of object if ID's are unknown
+-- --TargetIFF:
+-- ----Type:						Faction, Character, ENEMY, FRIENDLY, CIVILIAN, ANY
+-- ----tDetail:						Faction Type
+-- ----tName:						Character Name if character, or Faction Name if a generalized faction is used (such as "ColonyGov")
+-- --SPAWN TOTAL:					number of times flight is spawned
+-- --PLAYER ALLOWED:				can the player fly a ship in this flight (is an interior available)
+-- --PLAYER SHIP ALLOWED:			can the player use one of their owned ships in this flight
+-- --SHIP TOTAL:					number of ships in this flight
+-- --UI NAME:						Name of ship or RANDOM. For flights of more than one it becomes "name" 1, 2, 3, etc
+-- --preDefSHIP:					pre-defined ship name (from Mod/Ships/PreDefined folder) or RANDOM (not yet implemented)
+-- --PILOT NAME:					Name of pilot, ROSTER or RANDOM. For multi-crewed ships this is the captain's name
+
+-- END NOTES
+
+AI_test = {}
+AI_test_TUTscript = {}
+
+--*************************************
+--*************************************
+AI_test = {
+	UIName							= "AI_test",
+	UIDesc							= "Mission de test des pilotes IA",
+	UIBriefing						= "Cette mission est utilisée pour développer, tester et raffiner les IA des pilotes. Pour le moment, il n'y a qu'un seul vaisseau IA qui va cibler et attaquer le joueur. Il continuera jusqu'à ce qu'il n'ai plus de munitions, ou qu'ils soit trop endommagé.\r\n \r\nL'IA actuelle est préliminaire au mieux. Le but est d'avoir une IA capable de piloter son vaisseau comme le ferais un humain. Cependant, la capacité à viser de l'IA avec ce système est pas géniale. L'IA peut ête touchée et endommagée, mais le joueur aussi...",
+	has_TUTORIAL					= 0,
+
+	MissionTrigger					= {Type = "ASAP", Action = "NONE", Subject = "NONE", sName = "NONE"},
+	tRegion							= {Radius = 0.0, Subject = "PLAYER", sName = "NONE"},
+	StartDelay						= 0,
+
+	critical_MUSTdo					= 0,
+
+	Flight1 = {
+		UIName						= "Trainer",
+		Owner						= {Type = "Faction", Subject = "FactionA", sName = "NONE"},
+		StartState					= {Types = 1, DetailA = 0, DetailB = 192, DetailC = 0},
+		StartLoc					= {Degrees = 270, Radius = 650.0, Subject = "ORBIT", DetailA = 1, DetailB = 3, DetailC = 4, DetailD = 15, sName = "NONE"},
+		StartROT					= {x = 0.0, y = 0.0, z = 0.0},
+		SpawnTotal					= 1,
+		playerALLOWED				= 1,
+		playerShipALLOWED			= 0,
+		ShipTotal					= 1,
+		tailNUMBER1					= {Pri = -1, Sec = -1},																				-- Pri & Sec tail number identifier	XX-xxxx
+		genNewShips					= 1,
+		preDefSHIP					= "FireArc_BASIC",
+		PilotName					= "RANDOM",
+		TaskTotal					= 2,
+		Task1 = {
+			Task					= {Action = "ARRIVE", Method = "MAGIC", Trigger = "ASAP", sName = "NONE", Delay = 0},
+			TimeLimit				= -1,
+			TargetPRI				= {Type = "NONE", DetailA = 2, DetailB = 3, DetailC = 2},		--where(A), host(B), mine(C)
+			TargetIFF				= {Type = "NONE"},
+			isGOAL					= 0,
+		},
+		Task2 = {
+			TimeLimit				= -1,
+			Task					= {Action = "NAVIGATE", Method = "NONE", Trigger = "ASAP", sName = "NONE", Delay = 0},
+			TargetPRI				= {Type = "SHIP", Subject = "ATTACKSHIP", DetailA = -1, DetailB = -1, DetailC = -1, sName = "NONE"},
+			TargetIFF				= {Type = "Faction", Subject = "ColonyGov", sName = "Dunna Honrad"},
+			isGOAL					= 0,
+		},
+	},
+	Flight2 = {
+		UIName						= "Alpha",
+		Owner						= {Type = "Faction", Subject = "FactionA", sName = "NONE"},
+		StartState					= {Types = 1, DetailA = 0, DetailB = 0, DetailC = 0},
+		StartLoc					= {Degrees = -1, Radius = 1.0, Subject = "PLAYER",  DetailA = 1, DetailB = -1, DetailC = -1, DetailD = -1, sName = "NONE"},
+		StartROT					= {x = 0.0, y = 0.0, z = 0.0},
+		SpawnTotal					= 1,
+		playerALLOWED				= 0,
+		playerShipALLOWED			= 0,
+		ShipTotal					= 1,
+		tailNUMBER1					= {Pri = -1, Sec = -1},																				-- Pri & Sec tail number identifier	XX-xxxx
+		genNewShips					= 1,
+		preDefSHIP					= "Predator_BASIC",
+		PilotName					= "RANDOM",
+		TaskTotal					= 2,
+		Task1 = {
+			Task					= {Action = "ARRIVE", Method = "MAGIC", Trigger = "NONE", sName = "NONE", Delay = 1000},
+			TimeLimit				= -1,
+			TargetPRI				= {Type = "NONE"},
+			TargetIFF				= {Type = "NONE"},
+			isGOAL					= 0,
+		},
+		Task2 = {
+			TimeLimit				= -1,
+			Task					= {Action = "ATTACK", Method = "NONE", Trigger = "ASAP", sName = "NONE", Delay = 0},
+			TargetPRI				= {Type = "SHIP", Subject = "ATTACKSHIP", DetailA = -1, DetailB = -1, DetailC = -1, sName = "NONE"},
+			TargetIFF				= {Type = "Faction", Subject = "ColonyGov", sName = "Dunna Honrad"},
+			isGOAL					= 0,
+		},
+	},
+	Flight3 = {
+		UIName						= "Verne OBT",
+		Owner						= {Type = "Faction", Subject = "FactionA", sName = "NONE"},
+		StartState					= {Types = 1, DetailA = 0, DetailB = 0, DetailC = 0},
+		StartLoc					= {Degrees = -1, Radius = 30.0, Subject = "PLAYER",  DetailA = 1, DetailB = -1, DetailC = -1, DetailD = -1, sName = "NONE"},
+		StartROT					= {x = 0.0, y = 0.0, z = 0.0},
+		SpawnTotal					= 1,
+		playerALLOWED				= 0,
+		playerShipALLOWED			= 0,
+		ShipTotal					= 1,
+		tailNUMBER1					= {Pri = -1, Sec = -1},																				-- Pri & Sec tail number identifier	XX-xxxx
+		genNewShips					= 1,
+		preDefSHIP					= "TS3OBT_BASIC",
+		PilotName					= "RANDOM",
+		TaskTotal					= 2,
+		Task1 = {
+			Task					= {Action = "ARRIVE", Method = "MAGIC", Trigger = "NONE", sName = "NONE", Delay = 1000},
+			TimeLimit				= -1,
+			TargetPRI				= {Type = "NONE"},
+			TargetIFF				= {Type = "NONE"},
+			isGOAL					= 0,
+		},
+		Task2 = {
+			TimeLimit				= -1,
+			Task					= {Action = "NAVIGATE", Method = "NONE", Trigger = "ASAP", sName = "NONE", Delay = 0},
+			TargetPRI				= {Type = "SHIP", Subject = "ATTACKSHIP", DetailA = -1, DetailB = -1, DetailC = -1, sName = "NONE"},
+			TargetIFF				= {Type = "Faction", Subject = "ColonyGov", sName = "Dunna Honrad"},
+			isGOAL					= 0,
+		},
+	},
+}
+
+AI_test_TUTscript = {
+}
+
+--*************************************
+
+--OTHER NOTES:
+----Flights with capital ships (anything that can launch another ship) can only have 1 ship per flight
+----The first task must ALWAYS be an arrival task (Type = 4)
+----Manually assigned tail numbers, for missions, are in the range of primary 80 - 99, UNLESS using a pre-existing ship (if the tail number is not found, then a new ship created with a random tail number)
+----flights with either primary/secondary of -1, or ranges outside of primary 80 - 99, will be randomly assigned
+----the ship name (sName) is used to link a flight to their mothership. MAKE SURE THE NAMES ARE IDENTICAL!
+

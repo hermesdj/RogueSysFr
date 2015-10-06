@@ -14,7 +14,7 @@ Traduction en cours:
 - Missions :
     - [x] Test combat IA : 100%
     - [x] Secourir une plateforme : 100%
-- Données :
+- DonnÃ©es :
     - [ ] Liste des commandes : 10%
 - [ ] Citations : 5%
 

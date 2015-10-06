@@ -71,7 +71,7 @@ AI_test_TUTscript = {}
 AI_test = {
 	UIName							= "AI_test",
 	UIDesc							= "Mission de test des pilotes IA",
-	UIBriefing						= "Cette mission est utilisée pour développer, tester et raffiner les IA des pilotes. Pour le moment, il n'y a qu'un seul vaisseau IA qui va cibler et attaquer le joueur. Il continuera jusqu'à ce qu'il n'ai plus de munitions, ou qu'ils soit trop endommagé.\r\n \r\nL'IA actuelle est préliminaire au mieux. Le but est d'avoir une IA capable de piloter son vaisseau comme le ferais un humain. Cependant, la capacité à viser de l'IA avec ce système est pas géniale. L'IA peut ête touchée et endommagée, mais le joueur aussi...",
+	UIBriefing						= "Cette mission est utilisÃ©e pour dÃ©velopper, tester et raffiner les IA des pilotes. Pour le moment, il n'y a qu'un seul vaisseau IA qui va cibler et attaquer le joueur. Il continuera jusqu'Ã  ce qu'il n'ai plus de munitions, ou qu'ils soit trop endommagÃ©.\r\n \r\nL'IA actuelle est prÃ©liminaire au mieux. Le but est d'avoir une IA capable de piloter son vaisseau comme le ferais un humain. Cependant, la capacitÃ© Ã  viser de l'IA avec ce systÃ¨me est pas gÃ©niale. L'IA peut Ãªte touchÃ©e et endommagÃ©e, mais le joueur aussi...",
 	has_TUTORIAL					= 0,
 
 	MissionTrigger					= {Type = "ASAP", Action = "NONE", Subject = "NONE", sName = "NONE"},

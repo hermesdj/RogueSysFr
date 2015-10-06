@@ -1,4 +1,4 @@
--- ***SM1_RESCUE File***
+ï»¿-- ***SM1_RESCUE File***
 -- ***Created by Michael Juliano on 11AUG15***
 
 -- NOTES:
@@ -69,9 +69,9 @@ SM1_RESCUE_TUTscript = {}
 --*************************************
 --*************************************
 SM1_RESCUE = {
-	UIName							= "Mission Solo 1 : Secourir la plateforme d'entraînement",
-	UIDesc							= "Secourir une plateforme d'entraînement abandonnée",
-	UIBriefing						= "A cause d'un dysfonctionnement surprise, la plateforme orbitale Morgan a fait une poussée la mettant sur une trajectoire sub-orbitale, et elle va entrer en collision avec la lune en dessous. Nous préférerions ne pas perdre cette station si c'est possible. Vous avez environs 30 minutes pou rdémarrer, vous désamarrer, rencontrer la station Morgan, vous amarrer avec vos pinces d'urgence et utiliser votre RCS pour ramener la plateforme dans une orbite stable (periastre de 30km au moins).\r\n \r\nLa puissance primaire ne fonctionne pas sur la plateforme, mais ses localiseurs devraient encore être en train de transmettre sur la puissance d'urgence. Branchez vous sur 45.3.200, 45.3.201, 45.3.202, ou 45.3.203 pour votre fréquence de localization. Aussi, la station est dans une faible mais non contrôlée rotation. S'amarrer sera BEAUCOUP plus difficile. Finalement, une fois connecté votre centre de masse sera très déplacé. Accélérer aura des conséquences hasardeuse, donc faites attention.\r\n \r\nBonne chance...",
+	UIName							= "Mission Solo 1 : Secourir la plateforme d'entraÃ®nement",
+	UIDesc							= "Secourir une plateforme d'entraÃ®nement abandonnÃ©e",
+	UIBriefing						= "A cause d'un dysfonctionnement surprise, la plateforme orbitale Morgan a fait une poussÃ©e la mettant sur une trajectoire sub-orbitale, et elle va entrer en collision avec la lune en dessous. Nous prÃ©fÃ©rerions ne pas perdre cette station si c'est possible. Vous avez environs 30 minutes pou rdÃ©marrer, vous dÃ©samarrer, rencontrer la station Morgan, vous amarrer avec vos pinces d'urgence et utiliser votre RCS pour ramener la plateforme dans une orbite stable (periastre de 30km au moins).\r\n \r\nLa puissance primaire ne fonctionne pas sur la plateforme, mais ses localiseurs devraient encore Ãªtre en train de transmettre sur la puissance d'urgence. Branchez vous sur 45.3.200, 45.3.201, 45.3.202, ou 45.3.203 pour votre frÃ©quence de localization. Aussi, la station est dans une faible mais non contrÃ´lÃ©e rotation. S'amarrer sera BEAUCOUP plus difficile. Finalement, une fois connectÃ© votre centre de masse sera trÃ¨s dÃ©placÃ©. AccÃ©lÃ©rer aura des consÃ©quences hasardeuse, donc faites attention.\r\n \r\nBonne chance...",
 	has_TUTORIAL					= 0,
 
 	MissionTrigger					= {Type = "ASAP", Action = "NONE", Subject = "NONE", sName = "NONE"},

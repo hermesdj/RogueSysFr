@@ -69,9 +69,9 @@ T6_FireArc_FIXWPNS_TUTscript = {}
 --*************************************
 --*************************************
 T6_FireArc_FIXWPNS = {
-	UIName							= "Tutorial 6: Fixed Weapon Primer",
-	UIDesc							= "FireArc Initial Fixed Weapon Implementation",
-	UIBriefing						= "While RogSys will eventually include weapons of all types (beamed, propelled, auto-aimed, 'manned' turrets, etc.), currently there is only the 1st-pass implementation of a fixed 'slug thrower' rail gun.\r\n \r\nIn this tutorial the Weapons Management System (WMS) panel and HMD 'WEAPONS' page will be discussed in detail. You'll then learn to use the preliminary sensor system to select a satellite target drone. Finally, you will use the fixed slug-thrower to score hits on it.",
+	UIName							= "Tutoriel N°6: Armement Fixe en avant première",
+	UIDesc							= "Première implémentation des systèmes d'armement du FireArc",
+	UIBriefing						= "Rogue System contiendra éventuellement des armements de tous types (Rayons, Missiles, Auto Guidés, Tourelles, etc.), il n'y a pour le moment qu'une première implémentation basique d'un système fixe d'envoi de projectiles haute vélocité.\r\n \r\n Dans ce tutoriel le panneau de gestion de l'armement (WMS) et la page 'WEAPONS' du HMD seront discutés en détail. Vous apprendrez ensuite à utiliser les système de senseurs (implémentation préliminaire aussi) pour sélectionner un drone satellite d'entraînement. Enfin, vous utiliserez votre armement fixe pour envoyer des projectiles dessus.",
 	has_TUTORIAL					= 1,
 
 	MissionTrigger					= {Type = "ASAP", Action = "NONE", Subject = "NONE", sName = "NONE"},

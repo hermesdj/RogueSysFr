@@ -68,7 +68,7 @@ T2_FireArc_MANEUVERING_TUTscript = {}
 --*************************************
 --*************************************
 T2_FireArc_MANEUVERING = {
-	UIName							= "Tutoriel 2: Manoeuvres de base",
+	UIName							= "Tutoriel N°2: Manoeuvres de base",
 	UIDesc							= "Manoeuvres de base en utilisant divers modes MTS",
 	UIBriefing						= "L'objet de ce scénartio est de vous enseigner les bases des manoeuvres en utilisant à la fois les moteurs de translation et de rotation. Vous apprendrez aussi comment faire des poussées à haute vélocité en utilisant les divers modes de 'boosters'.\r\n \r\nIl est FORTEMENT recommandé que vous alliez visiter la page des options de 'Contrôle' pour y configurer les contrôles de vols en fonction de votre équipement avant de démarrer le tutoriel. Vous pouvez utiliser un Joystick, manettes ou le clavier pour faire voler votre vaisseau.",
 	has_TUTORIAL					= 1,

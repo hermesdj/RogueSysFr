@@ -69,7 +69,7 @@ T3_FireArc_LAUNCH_TUTscript = {}
 --*************************************
 --*************************************
 T3_FireArc_LAUNCH = {
-	UIName							= "Tutoriel 3: Lancement",
+	UIName							= "Tutoriel N°3: Lancement",
 	UIDesc							= "Entraînement au démarrage et au lancement du FireArc",
 	UIBriefing						= "Dans ce tutoriel vous serez guidé au travers d'une procédure de lancement type. Cela inclu un démarrage manuel complet, ainsi que les bases de la communication avec le contrôle du traffic spatial (STC). Enfin, vous vous découplerez du collier extérieur et vous éloignerez de la plateforme d'entraînement.",
 	has_TUTORIAL					= 1,

@@ -68,7 +68,7 @@ T1_FireArc_INTRO_TUTscript = {}
 --*************************************
 --*************************************
 T1_FireArc_INTRO = {
-	UIName							= "Tutoriel 1: Introduction",
+	UIName							= "Tutoriel N°1: Introduction",
 	UIDesc							= "Une brève introduction à Rogue System, et la version prototype du 'FireArc'",
 	UIBriefing						= "Bienvenu dans Rogue System. Dans ce premier tutoriel vous serez introduit au mouvements, contrôles et interactions basiques avec votre vaisseau. On vous donnera aussi un bref résumé de la version prototype du chasseur d'attaque 'FireArc'. Prenez votre temps et regardez les alentours: votre vaisseau est pour le moment sur une orbite stable, donc pas besoin de se précipiter.\r\n \r\nCette version du 'FireArc' a été testée avec toutes les fonctionnalités de vaisseau existantes à ce jour. Il sera bientôt re conceptualisé dans son incarnation finale pour être utilisé dans le première campagne RogueSystem.",
 	has_TUTORIAL					= 1,

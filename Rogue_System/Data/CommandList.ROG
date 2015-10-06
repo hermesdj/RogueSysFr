@@ -1,0 +1,240 @@
+-- ***Conmand List File***
+-- ***Created by Michael Juliano on May 20, 2014***
+-- ***Copyright 2014 Digits Crossed Interactive***
+
+--NOTES:
+----Commands are sorted when loaded. No need to do it here except for organization
+----SubTypes:		FPS move (0), FPS action(1), FPS combat(2), CAMERA mode(0), CAMERA adjust(1) ... MISCELLANEOUS(100)
+----bindLIMITER:	bind to buttons/keys only (no entry), bind to axes only(1), allow both(2)
+
+Commands = {}
+--*************************************
+
+Commands = {
+	Total = 170,
+	Command1 = {Function = "CAMERA_trigger", Description = "Zoom (Basculer)", SubType = 0, should_REPEAT = 0},
+
+	Command2 = {Function = "CAMERA_zoom", Description = "Zoomer", SubType = 0, should_REPEAT = 1},
+
+	Command3 = {Function = "GAME_exit", Description = "(DEBUG) Quitter vers le bureau", SubType = 100},
+
+	Command4 = {Function = "CONTROL_roll", Description = "Roulis", should_REPEAT = 1, bindLIMITER = 1},
+	Command5 = {Function = "CONTROL_pitch", Description = "Tangage", should_REPEAT = 1, bindLIMITER = 1},
+	Command6 = {Function = "CONTROL_throttle", Description = "Accélérateur MES", should_REPEAT = 1, bindLIMITER = 1},
+	Command7 = {Function = "CONTROL_yaw", Description = "Lacet", should_REPEAT = 1, bindLIMITER = 1},
+	Command8 = {Function = "CONTROL_fore", Description = "Translation avant", should_REPEAT = 1},
+	Command9 = {Function = "CONTROL_aft", Description = "Translation arrière", should_REPEAT = 1},
+	Command10 = {Function = "CONTROL_left", Description = "Translation gauche", should_REPEAT = 1},
+	Command11 = {Function = "CONTROL_right", Description = "Translation droite", should_REPEAT = 1},
+	Command12 = {Function = "CONTROL_up", Description = "Translation haut", should_REPEAT = 1},
+	Command13 = {Function = "CONTROL_down", Description = "Translation bas", should_REPEAT = 1},
+
+	Command14 = {Function = "WEAPON_modeA", Description = "Gachette secondaire WMS", SubType = 0},
+	Command15 = {Function = "CSM_trylock", Description = "Réattacher les pinces d'amarrages d'urgence", SubType = 0},
+	Command16 = {Function = "CSM_deselect", Description = "Emergency Clamp Disconnect", SubType = 0},
+
+	Command17 = {Function = "FPS_fore", Description = "Marcher vers l'avant", SubType = 0, should_REPEAT = 1},
+	Command18 = {Function = "FPS_aft", Description = "Marcher vers l'arrière", SubType = 0, should_REPEAT = 1},
+	Command19 = {Function = "FPS_left", Description = "Pas à gauche", SubType = 0, should_REPEAT = 1},
+	Command20 = {Function = "FPS_right", Description = "Pas à droite", SubType = 0, should_REPEAT = 1},
+	Command21 = {Function = "FPS_crouch", Description = "S'accroupir", SubType = 0, should_REPEAT = 1},
+	Command22 = {Function = "FPS_jump", Description = "Sauter", SubType = 0},
+	Command23 = {Function = "FPS_run", Description = "Courir", SubType = 0, should_REPEAT = 1},
+
+	Command24 = {Function = "BATT_select", Description = "BMS Sélection de batterie", SubType = 0},
+	Command25 = {Function = "BATT_enable", Description = "BMS Activation de batterie", SubType = 0},
+	Command26 = {Function = "BATT_link", Description = "BMS Alim. Circuit", SubType = 0},
+	Command27 = {Function = "BATT_purge", Description = "BMS Neutralisateur d'Acide", SubType = 0},
+	Command28 = {Function = "BATT_recharge", Description = "BMS Activation Recharge", SubType = 0},
+
+	Command29 = {Function = "FCS_select", Description = "FCS Fuel Cell Select", SubType = 0},
+	Command30 = {Function = "FCS_enable", Description = "FCS Fuel Cell Enable", SubType = 0},
+	Command31 = {Function = "FCS_shutoffvalve", Description = "FCS Cut-Off Valve", SubType = 0},
+	Command32 = {Function = "FCS_source", Description = "FCS Reactant Tank Select", SubType = 0},
+	Command33 = {Function = "FCS_mode", Description = "FCS Fuel Tank Select", SubType = 0},
+	Command34 = {Function = "FCS_link", Description = "FCS Bus Feed", SubType = 0},
+	Command35 = {Function = "FCS_bipro", Description = "FCS Bi-Product Disposal", SubType = 0},
+	Command36 = {Function = "FCS_purge", Description = "FCS Contaminant Purge", SubType = 0},
+
+	Command37 = {Function = "ECS_select", Description = "ECS Bus Select", SubType = 0},
+	Command38 = {Function = "ECS_mode", Description = "ECS Power Distribution", SubType = 0},
+	Command39 = {Function = "ECS_enable", Description = "ECS Bus Enable", SubType = 0},
+	Command40 = {Function = "ECS_service", Description = "ECS Maintenance Power Cut-Off", SubType = 0},
+
+	Command41 = {Function = "TMS_enable", Description = "TMS System Enable", SubType = 0},
+	Command42 = {Function = "TMS_select", Description = "TMS Cooling Loop Select", SubType = 0},
+	Command43 = {Function = "TMS_pump", Description = "TMS Loop Pump Power", SubType = 0},
+	Command44 = {Function = "TMS_action", Description = "TMS All Pumps Enable", SubType = 0},
+	Command45 = {Function = "TMS_deploy", Description = "TMS Loop Radiator Deploy", SubType = 0},
+	Command46 = {Function = "TMS_radest", Description = "TMS Loop Radiator Bypass", SubType = 0},
+	Command47 = {Function = "TMS_mode", Description = "TMS Loop Laser Cooler Enable", SubType = 0},
+	Command48 = {Function = "TMS_source", Description = "TMS Pressurize Loop", SubType = 0},
+	Command49 = {Function = "TMS_purge", Description = "TMS Depressurize Loop", SubType = 0},
+	Command50 = {Function = "TMS_emergency", Description = "TMS Loop Coolant Overboard Dump", SubType = 0},
+
+	Command51 = {Function = "RCM_enable", Description = "RCM System Enable", SubType = 0},
+	Command52 = {Function = "RCM_pump", Description = "RCM Tank Pump Power", SubType = 0},
+	Command53 = {Function = "RCM_shutoffvalve", Description = "RCM Tank Cut-Off Valve", SubType = 0},
+	Command54 = {Function = "RCM_emergency", Description = "RCM Tank Overboard Dump", SubType = 0},
+	Command55 = {Function = "RCM_action", Description = "RCM All Valves/Pumps Enable", SubType = 0},
+	Command56 = {Function = "RCM_select", Description = "RCM Tank Select", SubType = 0},
+
+	Command57 = {Function = "MES_select", Description = "MES Engine Select", SubType = 0},
+	Command58 = {Function = "MES_enable", Description = "MES Engine Enable", SubType = 0},
+	Command59 = {Function = "MES_lock", Description = "MES Throttle Lock", SubType = 0},
+	Command60 = {Function = "MES_emergency", Description = "MES Fire Bottle", SubType = 0},
+	Command61 = {Function = "MES_jettison", Description = "MES Engine Jettison", SubType = 0},
+	Command62 = {Function = "MES_fluxenable", Description = "MES Flux Drive Enable", SubType = 0},
+	Command63 = {Function = "MES_mode", Description = "MES Flux Accumulator Auto-Balance", SubType = 0},
+	Command64 = {Function = "MES_left", Description = "MES Left Accumulator Lock", SubType = 0},
+	Command65 = {Function = "MES_right", Description = "MES Right Accumulator Lock", SubType = 0},
+	Command66 = {Function = "MES_generator", Description = "MES LEN Reactor Enable", SubType = 0},
+	Command67 = {Function = "MES_shutoffvalve", Description = "MES LENR Fuel Cut-Off Valve", SubType = 0},
+	Command68 = {Function = "MES_prestarter", Description = "MES LENR Chamber Pre-Heater", SubType = 0},
+	Command69 = {Function = "MES_fuseenable", Description = "MES LENR Fuse Enable", SubType = 0},
+	Command70 = {Function = "MES_bypass", Description = "MES LENR Cut-Off Override", SubType = 0},
+	Command71 = {Function = "MES_source", Description = "MES LENR Fuel Tank Select", SubType = 0},
+	Command72 = {Function = "MES_recharge", Description = "MES Accumulator Charge", SubType = 0},
+
+	Command73 = {Function = "SEAT_mode", Description = "Flight Mode Select", SubType = 0},
+	Command74 = {Function = "SEAT_modeC", Description = "Anti G-Loc Enable", SubType = 0},
+	Command75 = {Function = "SEAT_enable", Description = "Safe For Flight", SubType = 0},
+
+	Command76 = {Function = "EFD_enable", Description = "Station EFD Enable", SubType = 0},
+
+	Command77 = {Function = "HVD_enable", Description = "Station HVD Enable", SubType = 0},
+
+	Command78 = {Function = "INTFLOOD_action", Description = "Cabin Flood Lights", SubType = 0},
+
+	Command79 = {Function = "INSTLIGHT_action", Description = "Rétro éclairage des instruments", SubType = 0},
+
+	Command80 = {Function = "MTS_enable", Description = "MTS System Enable", SubType = 0},
+	Command81 = {Function = "MTS_source", Description = "MTS Fuel Tank Select", SubType = 0},
+	Command82 = {Function = "MTS_shutoffvalve", Description = "MTS Fuel Cut-Off Valve", SubType = 0},
+	Command83 = {Function = "MTS_heliconenable", Description = "MTS Helicon Ionizer Enable", SubType = 0},
+	Command84 = {Function = "MTS_superconenable", Description = "MTS Superconductor Enable", SubType = 0},
+	Command85 = {Function = "MTS_ichenable", Description = "MTS ICH Cyclotron Enable", SubType = 0},
+	Command86 = {Function = "MTS_starter", Description = "MTS Core Ignitor / Thrust Provide", SubType = 0, should_REPEAT = 1},
+	Command87 = {Function = "NAS_auto", Description = "NAS Autopilot Allow", SubType = 0},
+	Command88 = {Function = "MTS_mode", Description = "MTS Thrust Mode Select", SubType = 0},
+	Command89 = {Function = "MTS_rfaenable", Description = "MTS All Nozzles Enable", SubType = 0},
+	Command90 = {Function = "MTS_select", Description = "MTS Nozzle Select", SubType = 0},
+	Command91 = {Function = "MTS_bypass", Description = "MTS Nozzle Manual Cut-Off", SubType = 0},
+	Command92 = {Function = "MTS_pump", Description = "MTS Fuel Injector Enable", SubType = 0},
+
+	Command93 = {Function = "FPS_stand", Description = "Exit Station", SubType = 0},
+
+	Command94 = {Function = "COMM_enable", Description = "COMM System Enable", SubType = 0},
+	Command95 = {Function = "COMM_xmit", Description = "COMM Tansmitter Enable", SubType = 0},
+	Command96 = {Function = "COMM_menu", Description = "COMMS Menu Open/Close", SubType = 0},
+
+	Command97 = {Function = "EXTLIGHTS_action", Description = "Exterior Flood Lights"},
+
+	Command98 = {Function = "MFD_left", Description = "HMD Caret Left", SubType = 1, should_REPEAT = 1},
+	Command99 = {Function = "MFD_right", Description = "HMD Caret Right", SubType = 1, should_REPEAT = 1},
+	Command100 = {Function = "MFD_up", Description = "HMD Caret Up", SubType = 1, should_REPEAT = 1},
+	Command101 = {Function = "MFD_down", Description = "HMD Caret Down", SubType = 1, should_REPEAT = 1},
+	Command102 = {Function = "MFD_select", Description = "HMD Select", SubType = 1, should_REPEAT = 1},
+
+	Command103 = {Function = "WEAPON_link", Description = "WMS Primary Fire Link", SubType = 0},
+	Command104 = {Function = "WEAPON_action", Description = "WMS Primary Trigger", SubType = 0, should_REPEAT = 1},
+	Command105 = {Function = "WEAPON_select", Description = "WMS Primary Select", SubType = 0},
+	Command106 = {Function = "WEAPON_safety", Description = "WMS Weapons Arm All", SubType = 0},
+	Command107 = {Function = "WEAPON_enable", Description = "WMS Primary Enable", SubType = 0},
+	Command108 = {Function = "WEAPON_active", Description = "WMS Primary All-Enable", SubType = 0},
+
+	Command109 = {Function = "NAS_enable", Description = "NAS System Enable", SubType = 0},
+
+	Command110 = {Function = "WPNCAP_enable", Description = "WMS Pri. Capacitor Enable", SubType = 1},
+	Command111 = {Function = "WPNCAP_bypass", Description = "WMS Pri. Capacitor Isolate", SubType = 1},
+	Command112 = {Function = "WPNCAP_disable", Description = "WMS Pri. Capacitor Discharge", SubType = 1},
+
+	Command113 = {Function = "CAMERA_fpscam", Description = "First-Person Camera", SubType = 0},
+	Command114 = {Function = "CAMERA_orbitcam", Description = "Orbit Camera", SubType = 0},
+	Command115 = {Function = "CAMERA_chasecam", Description = "Chase Camera", SubType = 0},
+
+	Command116 = {Function = "WTC_enable", Description = "Target Scanner Enable", SubType = 2},
+	Command117 = {Function = "WTC_select", Description = "Select Next Trace", SubType = 2},
+	Command118 = {Function = "WTC_trylock", Description = "Attempt Target Lock", SubType = 2},
+	Command119 = {Function = "WTC_deselect", Description = "Deselect Locked Target", SubType = 2},
+
+	Command120 = {Function = "CAMERA_bypass", Description = "Override Mouse Look", SubType = 0},
+
+	Command121 = {Function = "CANMON_enable", Description = "VMS enable", SubType = 0},
+	Command122 = {Function = "CANMON_vent", Description = "VMS anti-fog reset", SubType = 0},
+	Command123 = {Function = "CANMON_action", Description = "VMS polarizer reset", SubType = 0},
+
+	Command124 = {Function = "MFD_mouselook", Description = "HMD mouse/caret sync", SubType = 1},
+
+	Command125 = {Function = "CONTROL_boostthrottle", Description = "MTS Booster Throttle", should_REPEAT = 1, bindLIMITER = 1},
+	Command126 = {Function = "MTS_boostbrake", Description = "MTS Boost Deflector Engage/Disengage", SubType = 0},
+
+	Command127 = {Function = "GAME_enter", Description = "(DEBUG) Starts the current mission", SubType = 100},
+
+	Command128 = {Function = "CAW_reset", Description = "Fault Acknowledge", SubType = 0},
+	Command129 = {Function = "CAW_output", Description = "Audio Suppress", SubType = 0},
+
+	Command130 = {Function = "GAME_up", Description = "(TIME ACCELERATION) Increase", SubType = 100},
+	Command131 = {Function = "GAME_down", Description = "(TIME ACCELERATION) decrease", SubType = 100},
+	Command132 = {Function = "COMM_mode", Description = "COMMS Signal Strength Select", SubType = 0},
+	Command133 = {Function = "MTS_autooff", Description = "MTS Boost Auto-Idle Enable/Disable", SubType = 0},
+	Command134 = {Function = "MTS_auto", Description = "MTS Nozzle Limiter Enable/Disable", SubType = 0},
+
+	Command135 = {Function = "GAME_disable", Description = "Head-Tracking Disable", SubType = 100},
+	Command136 = {Function = "GAME_mode", Description = "(DEBUG) Activer/désactiver la console", SubType = 100},
+
+	Command137 = {Function = "FPS_throttle", Description = "Avancer/Reculer", SubType = 0, should_REPEAT = 1, bindLIMITER = 1},
+	Command138 = {Function = "FPS_roll", Description = "Pas à gauche/droite", SubType = 0, should_REPEAT = 1, bindLIMITER = 1},
+
+	Command139 = {Function = "CONTROL_sourceA", Description = "Tangage haut", should_REPEAT = 1},
+	Command140 = {Function = "CONTROL_sourceB", Description = "Tangage bas", should_REPEAT = 1},
+	Command141 = {Function = "CONTROL_sourceC", Description = "Roulis gauche", should_REPEAT = 1},
+	Command142 = {Function = "CONTROL_sourceD", Description = "Roulis droite", should_REPEAT = 1},
+	Command143 = {Function = "CONTROL_sourceAlvl", Description = "Lacet gauche", should_REPEAT = 1},
+	Command144 = {Function = "CONTROL_sourceBlvl", Description = "Lacet droit", should_REPEAT = 1},
+	Command145 = {Function = "CONTROL_sourceClvl", Description = "MTS Booster Throttle Up", should_REPEAT = 0},
+	Command146 = {Function = "CONTROL_sourceDlvl", Description = "MTS Booster Throttle Down", should_REPEAT = 0},
+	Command147 = {Function = "CONTROL_timescaleinc", Description = "MES Throttle Up", should_REPEAT = 0},
+	Command148 = {Function = "CONTROL_timescaledec", Description = "MES Throttle Down", should_REPEAT = 0},
+
+	Command149 = {Function = "FPS_pitch", Description = "Regarder vers le haut/bas", SubType = 0, should_REPEAT = 1, bindLIMITER = 1},
+	Command150 = {Function = "FPS_yaw", Description = "Regarder à gauche/droite", SubType = 0, should_REPEAT = 1, bindLIMITER = 1},
+
+	Command151 = {Function = "MTS_modeD", Description = "MTS Cold Gas Override", SubType = 0},
+
+	Command152 = {Function = "LSKID_deploy", Description = "CSSM Docking Skids: Extend/Retract", SubType = 1},
+
+	Command153 = {Function = "CAMERA_staticcam", Description = "Cycle Static Cameras", SubType = 0},
+
+	Command154 = {Function = "NAS_source", Description = "NAS Autopilot Alignment Reference", SubType = 0},
+	Command155 = {Function = "NAS_mode", Description = "NAS Autopilot Alignment Mode Select", SubType = 0},
+	Command156 = {Function = "NAS_action", Description = "NAS Autopilot Alignment Initiate", SubType = 0},
+	Command157 = {Function = "NAS_pitch", Description = "NAS Autopilot Pitch Hold", SubType = 0},
+	Command158 = {Function = "NAS_roll", Description = "NAS Autopilot Roll Hold", SubType = 0},
+	Command159 = {Function = "NAS_yaw", Description = "NAS Autopilot Yaw Hold", SubType = 0},
+
+	Command160 = {Function = "WEAPON_jettison", Description = "WMS Primary Jettison Selected", SubType = 0},
+	Command161 = {Function = "WPNCAP_select", Description = "WMS Pri. Capacitor Select", SubType = 1},
+
+	Command162 = {Function = "GAME_sourceA", Description = "(DEBUG) Render Interior Collision", SubType = 100},
+	Command163 = {Function = "GAME_sourceB", Description = "(DEBUG) Render Exterior Collision", SubType = 100},
+
+	Command164 = {Function = "FPS_modeA", Description = "Use item, Rotary Increase, HMD Active", SubType = 1},
+	Command165 = {Function = "FPS_modeB", Description = "Use item, Rotary Decrease, HMD InActive", SubType = 1},
+
+	Command166 = {Function = "NAS_disable", Description = "NAS Autopilot Override", SubType = 0, should_REPEAT = 1},
+	Command167 = {Function = "NAS_cancel", Description = "NAS Autopilot Disconnect", SubType = 0},
+
+	Command168 = {Function = "MES_boostbrake", Description = "MES Flux Reverse Engage/Disengage", SubType = 0},
+
+	Command169 = {Function = "FPS_reset", Description = "S'endormir", SubType = 0},
+	Command170 = {Function = "CSM_reset", Description = "Activer le SAN", SubType = 0},
+}
+--*************************************
+
+--Additional Notes:
+----Command# = {Function = "NONE", Description = "NONE"}
+------Function: SYSTEM_action
+------Description: UI command description
+
+--END-OF-LINE

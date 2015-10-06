@@ -69,9 +69,9 @@ T5_FireArc_SHUTDOWN_TUTscript = {}
 --*************************************
 --*************************************
 T5_FireArc_SHUTDOWN = {
-	UIName							= "Tutorial 5: Shut-Down",
-	UIDesc							= "FireArc Shut-Down Procedures",
-	UIBriefing						= "This is a continuation of the External Port Docking tutorial. You will be shown the procedure (based on the current implemented systems) for securing your ship after a successful docking maneuver.\r\n \r\nYour ship is currently fully powered and mated with the training platform. While there's no specific time limit, STC always appreciates an expedient shut-down.",
+	UIName							= "Tutoriel N°5: Fermeture des systèmes",
+	UIDesc							= "Procédures de fermeture des systèmes du FireArc",
+	UIBriefing						= "Ce tutoriel est la suite du tutoriel numéro 4 sur la procédure d'amarrage externe. Il vous sera montré la procédure vous permettant de sécuriser votre vaisseau après une manoeuvre d'amarrage réussie.\r\n \r\nVotre vaisseau est pour le moment pleinement alimenté et amarré à la plateforme d'entraînement. Il n'y a pas de limite de temps définie, mais STC apprécie que cela soit fait rapidement.",
 	has_TUTORIAL					= 1,
 
 	MissionTrigger					= {Type = "ASAP", Action = "NONE", Subject = "NONE", sName = "NONE"},

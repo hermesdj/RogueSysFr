@@ -69,9 +69,9 @@ T4_FireArc_EXTDOCK_TUTscript = {}
 --*************************************
 --*************************************
 T4_FireArc_EXTDOCK = {
-	UIName							= "Tutorial 4: External Docking",
-	UIDesc							= "FireArc External Port Docking Training",
-	UIBriefing						= "In this tutorial you will be guided through a typical docking procedure at an external port. This also includes basic Space Traffic Control (STC) Approach communications, as well. Again, you'll be maneuvering in close proximity of the A1-OBT training platform--use caution.\r\n \r\nThere is a lot to learn during this tutorial, and docking will take some time to master. Considering that, basic ship shut-down will be covered separately.",
+	UIName							= "Tutoriel N°4: Amarrage Externe",
+	UIDesc							= "Entraînement à l'amarrage externe avec le FireArc",
+	UIBriefing						= "Dans ce tutoriel vous serez guidé à travers une procédure d'amarrage externe typique. Cela inclu aussi la communication avec le contrôle du traffic spatial pour les phases d'approche. Une nouvelle fois, vous allez manoeuvrer près d'une station orbitale : soyez prudent !\r\n \r\nIl y a beaucoup à apprendre pendant ce tutoriel, et l'amrrage va prendre un peu de temps à maîtriser. Du coup, la procédure de fermeture des systèmes du vaisseau sera couvert dans un autre tutoriel.",
 	has_TUTORIAL					= 1,
 
 	MissionTrigger					= {Type = "ASAP", Action = "NONE", Subject = "NONE", sName = "NONE"},

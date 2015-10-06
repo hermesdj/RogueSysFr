@@ -69,9 +69,9 @@ T7_FireArc_FLUXDRIVE_TUTscript = {}
 --*************************************
 --*************************************
 T7_FireArc_FLUXDRIVE = {
-	UIName							= "Tutorial 7: FLUX Drive Tutorial",
-	UIDesc							= "FireArc FLUX Drive Operation",
-	UIBriefing						= "In this tutorial you will learn the basics of the Main Engine System's FLUX Drive--a constant-g propulsion system. You will undock, use the FLUX Drive to travel to a neighboring celestial body, and then dock with the station in orbit there.\r\n \r\nTODO: CREATE TUTORIAL SCRIPT. Until tutorial scripting is complete please see my thread at the RogSys forums for a FLUX Drive primer. Likewise, Deephack has uploaded a video covering this, as well. Sorry for the inconvienence....",
+	UIName							= "Tutoriel N°7: Utilisation du moteur FLUX",
+	UIDesc							= "Opération du moteur à poussée constante FLUX",
+	UIBriefing						= "Dans ce tutoriel vous apprendrez les bases de l'opération du moteur principal de type FLUX, un système de propulsion à accélération constante. Vous allez vous désamarrer, utiliser le moteur de FLUX pour voyager jusqu'à une autre planète voisine, puis vous amarrer à une station en orbite là bas.\r\n \r\nA FAIRE: CREER LE SCRIPT DU TUTORIEL. Jusqu'à ce que le script du tutoriel soit complet, veuillez consulter le sujet que j'ai fait sur le forum de Rogue System consacré au moteur de FLUX. Aussi, Deephack a uploadé une vidéo qui couvre aussi ce sujet. Désolé pour la gêne occasionnée....",
 	has_TUTORIAL					= 1,
 
 	MissionTrigger					= {Type = "ASAP", Action = "NONE", Subject = "NONE", sName = "NONE"},
@@ -294,19 +294,19 @@ T7_FireArc_FLUXDRIVE = {
 
 T7_FireArc_FLUXDRIVE_TUTscript = {
 	Event1 = {
-		Line = "Please see my thread in the RogSys forums for a quick Flux Drive tutorial.",
+		Line = "Veuillez voir mon sujet sur le forum Rogue System pour un tutoriel rapide sur l'utilisation du moteur FLUX.",
 		Delay = 1000, message_LENGTH = 1, object_ID = -1,
 		System = "NONE", SystemID = -1, Setting = -1, 
 		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
 	},
 	Event2 = {
-		Line = "There is a traing platform in orbit around the local planet, and each of its moons.",
+		Line = "Il y a une plateforme d'entraînement en orbite autour de la planètre, et autour de chacune de ses lunes.",
 		Delay = 300, message_LENGTH = 1, object_ID = -1,
 		System = "NONE", SystemID = -1, Setting = -1, 
 		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
 	},
 	Event3 = {
-		Line = "TODO: FLUX DRIVE TUTORIAL SCRIPTING...",
+		Line = "A FAIRE : SCRIPTER LE TUTORIEL DU MOTEUR DE FLUX...",
 		Delay = 300, message_LENGTH = 1, object_ID = -1,
 		System = "NONE", SystemID = -1, Setting = -1, 
 		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",

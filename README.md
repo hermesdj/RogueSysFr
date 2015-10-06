@@ -12,8 +12,8 @@ Traduction en cours:
     - [x] T6 : 100%
     - [x] T7 : 100%
 - Missions :
-    - [x] Test combat IA
-    - [x] Secourir une plateforme
+    - [x] Test combat IA : 100%
+    - [x] Secourir une plateforme : 100%
 - Données :
     - [ ] Liste des commandes : 10%
 - [ ] Citations : 5%

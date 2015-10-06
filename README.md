@@ -8,8 +8,8 @@ Traduction en cours:
     - [x] T2 : 100%
     - [x] T3 : 100%
     - [x] T4 : 100%
-    - [ ] T5 : 5%
-    - [ ] T6 : 5%
+    - [x] T5 : 100%
+    - [ ] T6 : 25%
     - [x] T7 : 100%
 - [ ] Data : 0%
     - [ ] Liste des commandes : 10%

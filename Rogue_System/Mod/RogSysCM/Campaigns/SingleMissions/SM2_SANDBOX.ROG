@@ -1,5 +1,5 @@
--- ***T7_FireArc_FLUXDRIVE File***
--- ***Created by Michael Juliano on 15JUL15***
+-- ***SM2_SANDBOX File***
+-- ***Created by Michael Juliano on 22OCT15***
 
 -- NOTES:
 -- --MISSION TRIGGER				conditions required to start the mission
@@ -63,28 +63,28 @@
 
 -- END NOTES
 
-T7_FireArc_FLUXDRIVE = {}
-T7_FireArc_FLUXDRIVE_TUTscript = {}
+SM2_SANDBOX = {}
+SM2_SANDBOX_TUTscript = {}
 
 --*************************************
 --*************************************
-T7_FireArc_FLUXDRIVE = {
-	UIName							= "Tutoriel N°7: Utilisation du moteur FLUX",
-	UIDesc							= "Opération du moteur à poussée constante FLUX",
-	UIBriefing						= "Dans ce tutoriel vous apprendrez les bases de l'opération du moteur principal de type FLUX, un système de propulsion à accélération constante. Vous allez vous désamarrer, utiliser le moteur de FLUX pour voyager jusqu'à une autre planète voisine, puis vous amarrer à une station en orbite là bas.\r\n \r\nA FAIRE: CREER LE SCRIPT DU TUTORIEL. Jusqu'à ce que le script du tutoriel soit complet, veuillez consulter le sujet que j'ai fait sur le forum de Rogue System consacré au moteur de FLUX. Aussi, Deephack a uploadé une vidéo qui couvre aussi ce sujet. Désolé pour la gêne occasionnée....",
-	has_TUTORIAL					= 1,
+SM2_SANDBOX = {
+	UIName							= "Single Mission 2: Test Sandbox",
+	UIDesc							= "FireArc Sanbox Scenario",
+	UIBriefing						= "This is a simple test sandbox scenario. Your FireArc prototype starts in a powered down state, docked with the Campana OBT. There is at least one object in orbit around every celestial body in the local prototype star system.\r\n \r\nA simple mission--just start up, undock, and explore. The only critical goals are to undock, and then dock again later.",
+	has_TUTORIAL					= 0,
 
 	MissionTrigger					= {Type = "ASAP", Action = "NONE", Subject = "NONE", sName = "NONE"},
 	tRegion							= {Radius = 0.0, Subject = "PLAYER", sName = "NONE"},
 	StartDelay						= 0,
 
-	critical_MUSTdo					= 1,
+	critical_MUSTdo					= 2,
 
 	Flight1 = {
 		UIName						= "Trainer",
 		Owner						= {Type = "Faction", Subject = "FactionA", sName = "NONE"},
-		StartState					= {Types = 1, DetailA = 0, DetailB = 192, DetailC = 0},
-		StartLoc					= {Degrees = 110, Radius = 1350.0, RadiusB = 940.0, Subject = "ORBIT",  DetailA = 1, DetailB = 3, DetailC = 1, DetailD = 15, sName = "NONE"},
+		StartState					= {Types = 2, DetailA = 1, DetailB = 176, DetailC = 0},
+		StartLoc					= {Degrees = -1, Radius = -1, Subject = "DOCKED",  DetailA = 2, DetailB = 1, DetailC = -1, DetailD = -1, sName = "NONE"},
 		StartROT					= {x = 0.0, y = 0.0, z = 0.0},
 		SpawnTotal					= 1,
 		playerALLOWED				= 1,
@@ -94,18 +94,25 @@ T7_FireArc_FLUXDRIVE = {
 		genNewShips					= 1,
 		preDefSHIP					= "FireArc_BASIC",
 		PilotName					= "RANDOM",
-		TaskTotal					= 2,
+		TaskTotal					= 3,
 		Task1 = {
-			Task					= {Action = "ARRIVE", Method = "MAGIC", Trigger = "ASAP", sName = "NONE", Delay = 0},
+			Task					= {Action = "ARRIVE", Method = "MOTHERSHIP", Trigger = "ASAP", sName = "NONE", Delay = 0},
 			TimeLimit				= -1,
-			TargetPRI				= {Type = "NONE", DetailA = 2, DetailB = 3, DetailC = 2},		--where(A), host(B), mine(C)
+			TargetPRI				= {Type = "NONE", DetailA = 2, DetailB = 3, DetailC = 2},		--flight(A), host(B), mine(C)
 			TargetIFF				= {Type = "NONE"},
 			isGOAL					= 0,
 		},
 		Task2 = {
 			TimeLimit				= -1,
+			Task					= {Action = "UNDOCKS", Method = "NONE", Trigger = "ASAP", sName = "NONE", Delay = 0},
+			TargetPRI				= {Type = "NONE", Subject = "NONE", DetailA = -1, DetailB = -1, DetailC = -1, sName = "NONE"},
+			TargetIFF				= {Type = "NONE", Subject = "NONE", sName = "NONE"},
+			isGOAL					= 2,
+		},
+		Task3 = {
+			TimeLimit				= -1,
 			Task					= {Action = "DOCKS", Method = "NONE", Trigger = "ASAP", sName = "NONE", Delay = 0},
-			TargetPRI				= {Type = "NONE", Subject = "NONE", DetailA = 3, DetailB = -1, DetailC = -1, sName = "NONE"},
+			TargetPRI				= {Type = "NONE", Subject = "NONE", DetailA = 2, DetailB = -1, DetailC = -1, sName = "NONE"},
 			TargetIFF				= {Type = "NONE", Subject = "NONE", sName = "NONE"},
 			isGOAL					= 2,
 		},
@@ -114,7 +121,7 @@ T7_FireArc_FLUXDRIVE = {
 		UIName						= "Campana OBT",
 		Owner						= {Type = "Faction", Subject = "FactionA", sName = "NONE"},
 		StartState					= {Types = 1, DetailA = 0, DetailB = 0, DetailC = 0},
-		StartLoc					= {Degrees = 110, Radius = 650.0, RadiusB = 640.0, Subject = "ORBIT",  DetailA = 1, DetailB = 3, DetailC = 1, DetailD = 15, sName = "NONE"},
+		StartLoc					= {Degrees = 95.0, Radius = 803.0, Subject = "ORBIT", DetailA = 1, DetailB = 3, DetailC = 0, DetailD = 15, sName = "NONE"},
 		StartROT					= {x = 0.0, y = 0.0, z = 0.0},
 		SpawnTotal					= 1,
 		playerALLOWED				= 0,
@@ -126,7 +133,7 @@ T7_FireArc_FLUXDRIVE = {
 		PilotName					= "RANDOM",
 		TaskTotal					= 2,
 		Task1 = {
-			Task					= {Action = "ARRIVE", Method = "MAGIC", Trigger = "NONE", sName = "NONE", Delay = 1000},
+			Task					= {Action = "ARRIVE", Method = "MAGIC", Trigger = "ASAP", sName = "NONE", Delay = 0},
 			TimeLimit				= -1,
 			TargetPRI				= {Type = "NONE"},
 			TargetIFF				= {Type = "NONE"},
@@ -144,7 +151,7 @@ T7_FireArc_FLUXDRIVE = {
 		UIName						= "Wilhelm OBT",
 		Owner						= {Type = "Faction", Subject = "FactionA", sName = "NONE"},
 		StartState					= {Types = 1, DetailA = 0, DetailB = 0, DetailC = 0},
-		StartLoc					= {Degrees = 90, Radius = 650.0, RadiusB = 640.0, Subject = "ORBIT",  DetailA = 1, DetailB = 3, DetailC = 2, DetailD = 15, sName = "NONE"},
+		StartLoc					= {Degrees = 90, Radius = 450.0, RadiusB = 440.0, Subject = "ORBIT",  DetailA = 1, DetailB = 3, DetailC = 2, DetailD = 15, sName = "NONE"},
 		StartROT					= {x = 0.0, y = 0.0, z = 0.0},
 		SpawnTotal					= 1,
 		playerALLOWED				= 0,
@@ -156,7 +163,7 @@ T7_FireArc_FLUXDRIVE = {
 		PilotName					= "RANDOM",
 		TaskTotal					= 2,
 		Task1 = {
-			Task					= {Action = "ARRIVE", Method = "MAGIC", Trigger = "NONE", sName = "NONE", Delay = 1000},
+			Task					= {Action = "ARRIVE", Method = "MAGIC", Trigger = "NONE", sName = "NONE", Delay = 999},
 			TimeLimit				= -1,
 			TargetPRI				= {Type = "NONE"},
 			TargetIFF				= {Type = "NONE"},
@@ -174,7 +181,7 @@ T7_FireArc_FLUXDRIVE = {
 		UIName						= "Griffen OBT",
 		Owner						= {Type = "Faction", Subject = "FactionA", sName = "NONE"},
 		StartState					= {Types = 1, DetailA = 0, DetailB = 0, DetailC = 0},
-		StartLoc					= {Degrees = 130, Radius = 650.0, RadiusB = 640.0, Subject = "ORBIT",  DetailA = 1, DetailB = 3, DetailC = 3, DetailD = 15, sName = "NONE"},
+		StartLoc					= {Degrees = 130, Radius = 500.0, RadiusB = 480.0, Subject = "ORBIT",  DetailA = 1, DetailB = 3, DetailC = 3, DetailD = 15, sName = "NONE"},
 		StartROT					= {x = 0.0, y = 0.0, z = 0.0},
 		SpawnTotal					= 1,
 		playerALLOWED				= 0,
@@ -204,7 +211,7 @@ T7_FireArc_FLUXDRIVE = {
 		UIName						= "Verne OBT",
 		Owner						= {Type = "Faction", Subject = "FactionA", sName = "NONE"},
 		StartState					= {Types = 1, DetailA = 0, DetailB = 0, DetailC = 0},
-		StartLoc					= {Degrees = 170, Radius = 650.0, RadiusB = 640.0, Subject = "ORBIT",  DetailA = 1, DetailB = 3, DetailC = 4, DetailD = 15, sName = "NONE"},
+		StartLoc					= {Degrees = 170, Radius = 250.0, RadiusB = 240.0, Subject = "ORBIT",  DetailA = 1, DetailB = 3, DetailC = 4, DetailD = 15, sName = "NONE"},
 		StartROT					= {x = 0.0, y = 0.0, z = 0.0},
 		SpawnTotal					= 1,
 		playerALLOWED				= 0,
@@ -216,7 +223,7 @@ T7_FireArc_FLUXDRIVE = {
 		PilotName					= "RANDOM",
 		TaskTotal					= 2,
 		Task1 = {
-			Task					= {Action = "ARRIVE", Method = "MAGIC", Trigger = "NONE", sName = "NONE", Delay = 1000},
+			Task					= {Action = "ARRIVE", Method = "MAGIC", Trigger = "NONE", sName = "NONE", Delay = 1001},
 			TimeLimit				= -1,
 			TargetPRI				= {Type = "NONE"},
 			TargetIFF				= {Type = "NONE"},
@@ -231,10 +238,40 @@ T7_FireArc_FLUXDRIVE = {
 		},
 	},
 	Flight6 = {
+		UIName						= "Sparrow OBT",
+		Owner						= {Type = "Faction", Subject = "FactionA", sName = "NONE"},
+		StartState					= {Types = 1, DetailA = 0, DetailB = 0, DetailC = 0},
+		StartLoc					= {Degrees = 10, Radius = 900.0, RadiusB = 870.0, Subject = "ORBIT", DetailA = 1, DetailB = 3, DetailC = 0, DetailD = 15, sName = "NONE"},
+		StartROT					= {x = 0.0, y = 0.0, z = 0.0},
+		SpawnTotal					= 1,
+		playerALLOWED				= 0,
+		playerShipALLOWED			= 0,
+		ShipTotal					= 1,
+		tailNUMBER1					= {Pri = -1, Sec = -1},																				-- Pri & Sec tail number identifier	XX-xxxx
+		genNewShips					= 1,
+		preDefSHIP					= "A1OBT_BASIC",
+		PilotName					= "RANDOM",
+		TaskTotal					= 2,
+		Task1 = {
+			Task					= {Action = "ARRIVE", Method = "MAGIC", Trigger = "NONE", sName = "NONE", Delay = 1002},
+			TimeLimit				= -1,
+			TargetPRI				= {Type = "NONE"},
+			TargetIFF				= {Type = "NONE"},
+			isGOAL					= 0,
+		},
+		Task2 = {
+			TimeLimit				= -1,
+			Task					= {Action = "NAVIGATE", Method = "NONE", Trigger = "ASAP", sName = "NONE", Delay = 0},
+			TargetPRI				= {Type = "SHIP", Subject = "ATTACKSHIP", DetailA = -1, DetailB = -1, DetailC = -1, sName = "NONE"},
+			TargetIFF				= {Type = "Faction", Subject = "ColonyGov", sName = "Dunna Honrad"},
+			isGOAL					= 0,
+		},
+	},
+	Flight7 = {
 		UIName						= "Flying Fox",
 		Owner						= {Type = "Faction", Subject = "FactionA", sName = "NONE"},
 		StartState					= {Types = 1, DetailA = 0, DetailB = 0, DetailC = 0},
-		StartLoc					= {Degrees = -1, Radius = 10.0, Subject = "PLAYER",  DetailA = 1, DetailB = -1, DetailC = -1, DetailD = -1, sName = "NONE"},
+		StartLoc					= {Degrees = 90, Radius = 1060.0, RadiusB = 950.0, Subject = "ORBIT",  DetailA = 1, DetailB = 1, DetailC = 0, DetailD = 15, sName = "NONE"},
 		StartROT					= {x = 0.8, y = 1.01, z = 0.2},
 		SpawnTotal					= 1,
 		playerALLOWED				= 1,
@@ -260,27 +297,129 @@ T7_FireArc_FLUXDRIVE = {
 			isGOAL					= 0,
 		},
 	},
+	Flight8 = {
+		UIName						= "Manheim OBT",
+		Owner						= {Type = "Faction", Subject = "FactionA", sName = "NONE"},
+		StartState					= {Types = 1, DetailA = 0, DetailB = 0, DetailC = 0},
+		StartLoc					= {Degrees = 90, Radius = 850.0, RadiusB = 740.0, Subject = "ORBIT",  DetailA = 1, DetailB = 2, DetailC = 0, DetailD = 15, sName = "NONE"},
+		StartROT					= {x = 0.0, y = 0.0, z = 0.0},
+		SpawnTotal					= 1,
+		playerALLOWED				= 0,
+		playerShipALLOWED			= 0,
+		ShipTotal					= 1,
+		tailNUMBER1					= {Pri = -1, Sec = -1},																				-- Pri & Sec tail number identifier	XX-xxxx
+		genNewShips					= 1,
+		preDefSHIP					= "A1OBT_BASIC",
+		PilotName					= "RANDOM",
+		TaskTotal					= 2,
+		Task1 = {
+			Task					= {Action = "ARRIVE", Method = "MAGIC", Trigger = "NONE", sName = "NONE", Delay = 1004},
+			TimeLimit				= -1,
+			TargetPRI				= {Type = "NONE"},
+			TargetIFF				= {Type = "NONE"},
+			isGOAL					= 0,
+		},
+		Task2 = {
+			TimeLimit				= -1,
+			Task					= {Action = "NAVIGATE", Method = "NONE", Trigger = "ASAP", sName = "NONE", Delay = 0},
+			TargetPRI				= {Type = "SHIP", Subject = "ATTACKSHIP", DetailA = -1, DetailB = -1, DetailC = -1, sName = "NONE"},
+			TargetIFF				= {Type = "Faction", Subject = "ColonyGov", sName = "Dunna Honrad"},
+			isGOAL					= 0,
+		},
+	},
+	Flight9 = {
+		UIName						= "Eagle OBT",
+		Owner						= {Type = "Faction", Subject = "FactionA", sName = "NONE"},
+		StartState					= {Types = 1, DetailA = 0, DetailB = 0, DetailC = 0},
+		StartLoc					= {Degrees = 90, Radius = 350.0, RadiusB = 320.0, Subject = "ORBIT",  DetailA = 1, DetailB = 2, DetailC = 1, DetailD = 15, sName = "NONE"},
+		StartROT					= {x = 0.0, y = 0.0, z = 0.0},
+		SpawnTotal					= 1,
+		playerALLOWED				= 0,
+		playerShipALLOWED			= 0,
+		ShipTotal					= 1,
+		tailNUMBER1					= {Pri = -1, Sec = -1},																				-- Pri & Sec tail number identifier	XX-xxxx
+		genNewShips					= 1,
+		preDefSHIP					= "A1OBT_BASIC",
+		PilotName					= "RANDOM",
+		TaskTotal					= 2,
+		Task1 = {
+			Task					= {Action = "ARRIVE", Method = "MAGIC", Trigger = "NONE", sName = "NONE", Delay = 1005},
+			TimeLimit				= -1,
+			TargetPRI				= {Type = "NONE"},
+			TargetIFF				= {Type = "NONE"},
+			isGOAL					= 0,
+		},
+		Task2 = {
+			TimeLimit				= -1,
+			Task					= {Action = "NAVIGATE", Method = "NONE", Trigger = "ASAP", sName = "NONE", Delay = 0},
+			TargetPRI				= {Type = "SHIP", Subject = "ATTACKSHIP", DetailA = -1, DetailB = -1, DetailC = -1, sName = "NONE"},
+			TargetIFF				= {Type = "Faction", Subject = "ColonyGov", sName = "Dunna Honrad"},
+			isGOAL					= 0,
+		},
+	},
+	Flight10 = {
+		UIName						= "Robin OBT",
+		Owner						= {Type = "Faction", Subject = "FactionA", sName = "NONE"},
+		StartState					= {Types = 1, DetailA = 0, DetailB = 0, DetailC = 0},
+		StartLoc					= {Degrees = 90, Radius = 610.0, RadiusB = 600.0, Subject = "ORBIT",  DetailA = 1, DetailB = 1, DetailC = 0, DetailD = 15, sName = "NONE"},
+		StartROT					= {x = 0.0, y = 0.0, z = 0.0},
+		SpawnTotal					= 1,
+		playerALLOWED				= 0,
+		playerShipALLOWED			= 0,
+		ShipTotal					= 1,
+		tailNUMBER1					= {Pri = -1, Sec = -1},																				-- Pri & Sec tail number identifier	XX-xxxx
+		genNewShips					= 1,
+		preDefSHIP					= "A1OBT_BASIC",
+		PilotName					= "RANDOM",
+		TaskTotal					= 2,
+		Task1 = {
+			Task					= {Action = "ARRIVE", Method = "MAGIC", Trigger = "NONE", sName = "NONE", Delay = 1006},
+			TimeLimit				= -1,
+			TargetPRI				= {Type = "NONE"},
+			TargetIFF				= {Type = "NONE"},
+			isGOAL					= 0,
+		},
+		Task2 = {
+			TimeLimit				= -1,
+			Task					= {Action = "NAVIGATE", Method = "NONE", Trigger = "ASAP", sName = "NONE", Delay = 0},
+			TargetPRI				= {Type = "SHIP", Subject = "ATTACKSHIP", DetailA = -1, DetailB = -1, DetailC = -1, sName = "NONE"},
+			TargetIFF				= {Type = "Faction", Subject = "ColonyGov", sName = "Dunna Honrad"},
+			isGOAL					= 0,
+		},
+	},
+	Flight11 = {
+		UIName						= "Angel OBT",
+		Owner						= {Type = "Faction", Subject = "FactionA", sName = "NONE"},
+		StartState					= {Types = 1, DetailA = 0, DetailB = 0, DetailC = 0},
+		StartLoc					= {Degrees = 90, Radius = 150.0, RadiusB = 140.0, Subject = "ORBIT",  DetailA = 1, DetailB = 1, DetailC = 1, DetailD = 15, sName = "NONE"},
+		StartROT					= {x = 0.0, y = 0.0, z = 0.0},
+		SpawnTotal					= 1,
+		playerALLOWED				= 0,
+		playerShipALLOWED			= 0,
+		ShipTotal					= 1,
+		tailNUMBER1					= {Pri = -1, Sec = -1},																				-- Pri & Sec tail number identifier	XX-xxxx
+		genNewShips					= 1,
+		preDefSHIP					= "A1OBT_BASIC",
+		PilotName					= "RANDOM",
+		TaskTotal					= 2,
+		Task1 = {
+			Task					= {Action = "ARRIVE", Method = "MAGIC", Trigger = "NONE", sName = "NONE", Delay = 1007},
+			TimeLimit				= -1,
+			TargetPRI				= {Type = "NONE"},
+			TargetIFF				= {Type = "NONE"},
+			isGOAL					= 0,
+		},
+		Task2 = {
+			TimeLimit				= -1,
+			Task					= {Action = "NAVIGATE", Method = "NONE", Trigger = "ASAP", sName = "NONE", Delay = 0},
+			TargetPRI				= {Type = "SHIP", Subject = "ATTACKSHIP", DetailA = -1, DetailB = -1, DetailC = -1, sName = "NONE"},
+			TargetIFF				= {Type = "Faction", Subject = "ColonyGov", sName = "Dunna Honrad"},
+			isGOAL					= 0,
+		},
+	},
 }
 
-T7_FireArc_FLUXDRIVE_TUTscript = {
-	Event1 = {
-		Line = "Veuillez voir mon sujet sur le forum Rogue System pour un tutoriel rapide sur l'utilisation du moteur FLUX.",
-		Delay = 1000, message_LENGTH = 1, object_ID = -1,
-		System = "NONE", SystemID = -1, Setting = -1, 
-		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
-	},
-	Event2 = {
-		Line = "Il y a une plateforme d'entraînement en orbite autour de la planètre, et autour de chacune de ses lunes.",
-		Delay = 300, message_LENGTH = 1, object_ID = -1,
-		System = "NONE", SystemID = -1, Setting = -1, 
-		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
-	},
-	Event3 = {
-		Line = "A FAIRE : SCRIPTER LE TUTORIEL DU MOTEUR DE FLUX...",
-		Delay = 300, message_LENGTH = 1, object_ID = -1,
-		System = "NONE", SystemID = -1, Setting = -1, 
-		compSystem = "PLAYER_", compSystemID = -1, compSetting = 0, shipTYPE = "BOMBER",
-	},
+SM2_SANDBOX_TUTscript = {
 }
 
 --*************************************
